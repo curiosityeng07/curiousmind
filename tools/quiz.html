@@ -1,0 +1,94 @@
+      <div class="tph"><h3>Cp &amp; Cpk Decision Quiz</h3><button class="xb" onclick="closeTool('quiz',event)">&#x2715;</button></div>
+      <div id="quiz-inner" style="padding:24px 28px 28px">
+        <div style="display:flex;gap:5px;margin-bottom:16px" id="quiz-prog"></div>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:16px;margin-bottom:14px;border:0.5px solid var(--border)">
+          <div id="quiz-badge" style="margin-bottom:8px"></div>
+          <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px" id="quiz-metrics"></div>
+          <div style="position:relative;width:100%;height:160px"><canvas id="qC"></canvas></div>
+        </div>
+        <div style="font-size:15px;font-weight:500;color:var(--text);margin-bottom:12px;line-height:1.5" id="quiz-q"></div>
+        <div style="display:flex;flex-direction:column;gap:7px" id="quiz-ans"></div>
+        <div id="quiz-fb" style="display:none;margin-top:12px;padding:11px 15px;font-size:13px;line-height:1.6;border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+          <span style="font-size:12px;color:var(--subtle);background:var(--bg);padding:4px 12px;border-radius:980px;border:0.5px solid var(--border)" id="quiz-score">0 / 0 correct</span>
+          <button id="quiz-next" onclick="quizNext()" style="display:none;padding:8px 20px;border-radius:980px;border:0.5px solid var(--border2);background:var(--card);cursor:pointer;font-size:13px;font-weight:500;color:var(--text)">Next &#x2192;</button>
+        </div>
+      </div>
+      <div id="quiz-finish" style="display:none;padding:32px 28px;text-align:center">
+        <div style="font-size:12px;color:var(--subtle);text-transform:uppercase;letter-spacing:0.08em;font-weight:500;margin-bottom:8px">Final score</div>
+        <div style="font-size:52px;font-weight:500" id="qf-score"></div>
+        <div style="font-size:14px;color:var(--muted);margin:8px 0 24px;line-height:1.6" id="qf-msg"></div>
+        <button onclick="quizRestart()" style="padding:10px 24px;border-radius:980px;border:1.5px solid var(--border2);background:var(--card);cursor:pointer;font-size:14px;font-weight:500;color:var(--text)">Try again</button>
+      </div>
+<script>
+const qSc=[
+  {mu:100,sigma:8.5,badge:'Wide process',bBg:'#FCEBEB',bTxt:'#A32D2D',q:'Cp = 0.59, Cpk = 0.57 — what do you do next?',answers:[
+    {text:'Center the process — shift the mean to target',correct:false,why:'Centering won\'t help here. The spread is so wide that parts fail on both sides simultaneously. A centered bad process is still bad.'},
+    {text:'Reduce variation — investigate sources of spread',correct:true,why:'When Cp < 1 and Cpk \u2248 Cp, the process is roughly centered but the spread is too wide. Fix the wall before straightening the picture.'},
+    {text:'Approve it — yield is still above 50%',correct:false,why:'Low yield is never acceptable. Cp = 0.59 means the spread is nearly twice the spec width.'},
+    {text:'Widen the spec limits to match the spread',correct:false,why:'The process must meet the spec — not the other way around.'}]},
+  {mu:108,sigma:3.0,badge:'Capable but drifted',bBg:'#FAEEDA',bTxt:'#633806',q:'Cp = 1.67, Cpk = 0.78. Variation is controlled but parts fail the upper limit. What now?',answers:[
+    {text:'Reduce variation further — push Cp above 2.0',correct:false,why:'Cp = 1.67 is excellent. The problem is drift — the mean has shifted significantly to the right.'},
+    {text:'Center the process — adjust mean back toward target',correct:true,why:'When Cp is high but Cpk is low, the spread is fine but the process is off-center. Close the gap by recentering.'},
+    {text:'Raise the USL — the process naturally runs high',correct:false,why:'Specs are defined by product function. The process must adapt to them.'},
+    {text:'Do nothing — Cpk of 0.78 is close enough',correct:false,why:'A Cpk of 0.78 means regular quality escapes. Action is needed.'}]},
+  {mu:100,sigma:2.8,badge:'Centered and capable',bBg:'#EAF3DE',bTxt:'#27500A',q:'Cp = 1.79, Cpk = 1.75 — tight and centered. What is your next step?',answers:[
+    {text:'Keep reducing variation — always push improvement',correct:false,why:'Over-tightening a capable process wastes resources and can introduce instability. Cpk = 1.75 is excellent — monitor it.'},
+    {text:'Monitor with control charts and document the process',correct:true,why:'When Cp \u2248 Cpk and both exceed 1.33, the process is capable. Lock in settings, document, and use SPC to detect drift.'},
+    {text:'Reduce sample size since the process looks good',correct:false,why:'Capability can drift due to tool wear or material changes. Maintain your sampling plan.'},
+    {text:'Adjust mean slightly to get Cpk exactly to 1.80',correct:false,why:'Chasing tiny gains in a capable process risks introducing unnecessary variation.'}]},
+  {mu:112,sigma:3.5,badge:'Badly drifted — urgent',bBg:'#FCEBEB',bTxt:'#A32D2D',q:'Cp = 1.43, Cpk = 0.29. Mean is at 112, USL is 115. First action?',answers:[
+    {text:'Reduce variation — Cp needs to reach 1.67',correct:false,why:'Cp = 1.43 already exceeds 1.33. The urgent problem is the massive drift to 112, only 3 units from USL.'},
+    {text:'Stop production and recenter the process immediately',correct:true,why:'A Cpk of 0.29 with the mean near USL means a large proportion of parts are out of spec right now. Stop, recenter, verify.'},
+    {text:'Submit a deviation request and continue running',correct:false,why:'Continuing compounds the quality escape. Recentering is urgent.'},
+    {text:'Tighten control chart limits to catch drift faster',correct:false,why:'Tightening limits is monitoring — it doesn\'t fix the existing drift. Adjust the process back to target first.'}]},
+  {mu:101,sigma:4.2,badge:'Slightly off-center',bBg:'#E1F5EE',bTxt:'#085041',q:'Cp = 1.19, Cpk = 1.11. Yield is 99.1%. What would you prioritize?',answers:[
+    {text:'Improve Cp to 1.33 by reducing variation',correct:true,why:'Cp = 1.19 is below the industry standard of 1.33. With Cp \u2248 Cpk the process is nearly centered — tightening spread improves both metrics.'},
+    {text:'Accept it — 99.1% yield is production-ready',correct:false,why:'Cp = 1.19 is below the 1.33 threshold most quality systems require — the process isn\'t formally capable yet.'},
+    {text:'Recenter first — close the gap between Cp and Cpk',correct:false,why:'The gap is already small — the process is nearly centered. Reducing variation is the bigger opportunity.'},
+    {text:'Add 100% inspection to catch failing parts',correct:false,why:'100% inspection is costly and doesn\'t fix the root cause. Build a capable process instead.'}]}
+];
+let qCur=0,qScore=0,qAns=0,qChart=null;
+function qBD(mu,s){const xs=[],yI=[],yO=[];const st=Math.min(mu-Math.max(4*s,20),LSL-5),en=Math.max(mu+Math.max(4*s,20),USL+5);for(let i=0;i<=180;i++){const x=st+(en-st)*i/180;xs.push(+x.toFixed(2));const y=npdf(x,mu,s);if(x>=LSL&&x<=USL){yI.push(y);yO.push(0)}else{yI.push(0);yO.push(y)}}return{xs,yI,yO}}
+function renderQuiz(){const s=qSc[qCur];
+  const cp=+((USL-LSL)/(6*s.sigma)).toFixed(2),cpk=+Math.min((USL-s.mu)/(3*s.sigma),(s.mu-LSL)/(3*s.sigma)).toFixed(2);
+  const yld=+((ncdf(USL,s.mu,s.sigma)-ncdf(LSL,s.mu,s.sigma))*100).toFixed(1);
+  const cc=cpk>=1.33?'#27500A':cpk>=1.0?'#633806':'#A32D2D';
+  document.getElementById('quiz-prog').innerHTML=qSc.map((_,i)=>'<div style="flex:1;height:4px;border-radius:2px;background:'+(i<qCur?'#3B6D11':i===qCur?'#0071e3':'var(--border)')+'"></div>').join('');
+  document.getElementById('quiz-badge').innerHTML='<span style="display:inline-flex;font-size:11px;font-weight:500;padding:3px 10px;border-radius:980px;text-transform:uppercase;letter-spacing:0.04em;background:'+s.bBg+';color:'+s.bTxt+'">'+s.badge+'</span>';
+  document.getElementById('quiz-metrics').innerHTML='<div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;border:0.5px solid var(--border)"><div style="font-size:10px;color:var(--subtle);text-transform:uppercase">Cp</div><div style="font-size:18px;font-weight:500">'+cp+'</div></div><div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;border:0.5px solid var(--border)"><div style="font-size:10px;color:var(--subtle);text-transform:uppercase">Cpk</div><div style="font-size:18px;font-weight:500;color:'+cc+'">'+cpk+'</div></div><div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;border:0.5px solid var(--border)"><div style="font-size:10px;color:var(--subtle);text-transform:uppercase">Yield</div><div style="font-size:18px;font-weight:500;color:'+cc+'">'+yld+'%</div></div><div style="background:var(--card);border-radius:var(--radius-sm);padding:8px 10px;border:0.5px solid var(--border)"><div style="font-size:10px;color:var(--subtle);text-transform:uppercase">\u03c3</div><div style="font-size:18px;font-weight:500">'+s.sigma+'</div></div>';
+  const{xs,yI,yO}=qBD(s.mu,s.sigma);if(qChart){qChart.destroy()}
+  qChart=new Chart(document.getElementById('qC'),{type:'line',data:{labels:xs,datasets:[
+    {data:xs.map((x,i)=>({x,y:yI[i]})),fill:true,backgroundColor:'rgba(99,153,34,0.18)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yO[i]})),fill:true,backgroundColor:'rgba(226,75,74,0.22)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yI[i]+yO[i]})),fill:false,borderColor:'#0071e3',tension:0.4,pointRadius:0,borderWidth:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:300},plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{type:'linear',min:Math.min(s.mu-4*s.sigma,LSL)-6,max:Math.max(s.mu+4*s.sigma,USL)+6,ticks:{stepSize:5,color:'#86868b',font:{size:9},callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(128,128,128,0.07)'}},y:{display:false,min:0}}}});
+  Chart.register({id:'qSL',afterDraw(c){const{ctx,scales:{x}}=c;[LSL,USL].forEach(v=>{const px=x.getPixelForValue(v);ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#E24B4A';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,c.chartArea.top);ctx.lineTo(px,c.chartArea.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#E24B4A';ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillText(v===LSL?'LSL':'USL',px,c.chartArea.top+10);ctx.restore()})}}); 
+  document.getElementById('quiz-q').textContent=s.q;
+  const ag=document.getElementById('quiz-ans');ag.innerHTML='';
+  s.answers.forEach((a,i)=>{const b=document.createElement('button');
+    b.style.cssText='width:100%;text-align:left;padding:10px 14px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-size:13px;color:var(--text);line-height:1.4;transition:background .15s';
+    b.textContent=a.text;b.onmouseover=()=>{if(!b.disabled)b.style.background='var(--bg)'};b.onmouseout=()=>{if(!b.disabled)b.style.background='var(--card)'};b.onclick=()=>quizAnswer(i);ag.appendChild(b);});
+  document.getElementById('quiz-fb').style.display='none';document.getElementById('quiz-next').style.display='none';
+  document.getElementById('quiz-score').textContent=qScore+' / '+qAns+' correct';}
+function quizAnswer(idx){const s=qSc[qCur];const correct=s.answers[idx].correct;if(correct)qScore++;qAns++;
+  document.getElementById('quiz-ans').querySelectorAll('button').forEach((b,i)=>{b.disabled=true;
+    if(i===idx){b.style.border=correct?'1.5px solid #3B6D11':'1.5px solid #A32D2D';b.style.background=correct?'#EAF3DE':'#FCEBEB';b.style.color=correct?'#173404':'#501313'}
+    else if(s.answers[i].correct){b.style.border='1.5px solid #3B6D11';b.style.background='#EAF3DE';b.style.color='#173404'}
+    else{b.style.opacity='0.35'}});
+  const fb=document.getElementById('quiz-fb');fb.style.background=correct?'#EAF3DE':'#FCEBEB';fb.style.color=correct?'#27500A':'#791F1F';fb.style.borderLeftColor=correct?'#3B6D11':'#E24B4A';
+  fb.innerHTML=(correct?'<strong>Correct.</strong> ':'<strong>Not quite.</strong> ')+s.answers[idx].why;fb.style.display='block';
+  document.getElementById('quiz-score').textContent=qScore+' / '+qAns+' correct';
+  const nb=document.getElementById('quiz-next');nb.style.display='inline-flex';nb.textContent=qCur<qSc.length-1?'Next \u2192':'See results';}
+function quizNext(){qCur++;if(qCur>=qSc.length){
+  document.getElementById('quiz-inner').style.display='none';document.getElementById('quiz-finish').style.display='block';
+  const pct=Math.round(qScore/qSc.length*100);const sc=document.getElementById('qf-score');sc.textContent=qScore+' / '+qSc.length;
+  sc.style.color=pct>=80?'#27500A':pct>=60?'#633806':'#A32D2D';
+  const msgs=[[100,'Perfect. You think like a process engineer.'],[80,'Strong. You know when to reduce variation vs recenter.'],[60,'Good instincts — review the Cp vs Cpk distinction.'],[0,'Keep going — this distinction takes practice.']];
+  document.getElementById('qf-msg').textContent=msgs.find(([t])=>pct>=t)[1];
+  document.getElementById('quiz-prog').innerHTML=qSc.map(()=>'<div style="flex:1;height:4px;border-radius:2px;background:#3B6D11"></div>').join('');return;}
+  renderQuiz();}
+function quizRestart(){qCur=0;qScore=0;qAns=0;document.getElementById('quiz-inner').style.display='block';document.getElementById('quiz-finish').style.display='none';renderQuiz();}
+renderQuiz();
+</script>

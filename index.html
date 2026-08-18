@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Curious Mind — Statistics for Manufacturing Engineers</title>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TX9FG5Y6FW"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-TX9FG5Y6FW');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f5f7;--bg2:#fbfbfd;--card:#ffffff;--text:#1d1d1f;--muted:#6e6e73;
+  --subtle:#86868b;--border:rgba(0,0,0,0.08);--border2:rgba(0,0,0,0.12);
+  --blue:#0071e3;--blue-light:#e8f0fb;--blue-mid:#4da3ff;
+  --green:#34c759;--amber:#ff9f0a;--red:#ff3b30;
+  --radius:20px;--radius-sm:14px;
+  --shadow:0 2px 20px rgba(0,0,0,0.07);--shadow-md:0 8px 40px rgba(0,0,0,0.10);--shadow-lg:0 20px 60px rgba(0,0,0,0.12);
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#000;--bg2:#1c1c1e;--card:#2c2c2e;--text:#f5f5f7;--muted:#aeaeb2;--subtle:#636366;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.12);--blue:#4da3ff;--blue-light:rgba(77,163,255,0.12);--shadow:0 2px 20px rgba(0,0,0,0.4);--shadow-md:0 8px 40px rgba(0,0,0,0.5);--shadow-lg:0 20px 60px rgba(0,0,0,0.6);}
+}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:17px;line-height:1.6;overflow-x:hidden}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 max(24px,4vw);background:rgba(245,245,247,0.85);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--border)}
+@media(prefers-color-scheme:dark){nav{background:rgba(0,0,0,0.85)}}
+.nav-logo{font-family:'DM Serif Display',serif;font-size:18px;color:var(--text);letter-spacing:-0.3px}
+.nav-links{display:flex;gap:24px;list-style:none}
+.nav-links a{color:var(--muted);text-decoration:none;font-size:13px;transition:color .2s}
+.nav-links a:hover{color:var(--text)}
+.nav-cta{background:var(--blue);color:#fff;padding:7px 16px;border-radius:980px;font-size:13px;font-weight:500;text-decoration:none;transition:opacity .2s}
+.nav-cta:hover{opacity:0.85}
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:120px max(24px,6vw) 80px;position:relative;overflow:hidden;background:var(--bg2)}
+.hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none}
+.orb1{width:600px;height:600px;background:radial-gradient(circle,rgba(0,113,227,0.12),transparent 70%);top:-100px;left:50%;transform:translateX(-50%)}
+.orb2{width:400px;height:400px;background:radial-gradient(circle,rgba(52,199,89,0.08),transparent 70%);bottom:0;right:10%}
+.eyebrow-pill{display:inline-flex;align-items:center;gap:8px;background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:500;padding:6px 16px;border-radius:980px;margin-bottom:28px;animation:fadeUp .8s ease both}
+.edot{width:6px;height:6px;border-radius:50%;background:var(--blue)}
+h1.htitle{font-family:'DM Serif Display',serif;font-size:clamp(48px,8vw,96px);font-weight:400;line-height:1.0;letter-spacing:-2px;max-width:820px;margin-bottom:24px;animation:fadeUp .8s ease .1s both}
+h1.htitle em{font-style:italic;color:var(--blue)}
+.hsub{font-size:clamp(17px,2vw,21px);color:var(--muted);max-width:520px;line-height:1.6;font-weight:300;margin-bottom:44px;animation:fadeUp .8s ease .2s both}
+.hbtns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;animation:fadeUp .8s ease .3s both}
+.btnp{background:var(--blue);color:#fff;padding:14px 28px;border-radius:980px;text-decoration:none;font-size:17px;font-weight:500;transition:all .2s}
+.btnp:hover{background:#0077ed;transform:scale(1.02)}
+.btng{background:transparent;color:var(--text);padding:14px 28px;border-radius:980px;text-decoration:none;font-size:17px;font-weight:500;border:1.5px solid var(--border2);transition:all .2s}
+.btng:hover{background:var(--card);transform:scale(1.02)}
+.hnums{display:flex;gap:60px;margin-top:72px;animation:fadeUp .8s ease .4s both}
+.hnum .n{font-family:'DM Serif Display',serif;font-size:36px}
+.hnum .l{font-size:13px;color:var(--subtle);margin-top:2px}
+section{padding:100px max(24px,6vw)}
+.ey{font-size:13px;font-weight:500;color:var(--blue);letter-spacing:0.02em;margin-bottom:12px;text-transform:uppercase}
+h2.st{font-family:'DM Serif Display',serif;font-size:clamp(32px,5vw,52px);font-weight:400;letter-spacing:-1px;line-height:1.1;margin-bottom:16px}
+h2.st em{font-style:italic;color:var(--blue)}
+.ss{font-size:17px;color:var(--muted);max-width:500px;line-height:1.7;font-weight:300;margin-bottom:60px}
+.stats-sec{background:var(--bg2)}
+.inner{max-width:1100px;margin:0 auto}
+.sintro{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:start;margin-bottom:80px}
+@media(max-width:700px){.sintro{grid-template-columns:1fr}}
+.slbl{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:0.5px solid var(--border);border-radius:980px;padding:6px 14px;font-size:13px;color:var(--muted);margin-bottom:12px}
+.sd{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.sd.a{background:var(--amber)}
+.sd.g{background:var(--subtle)}
+.pbar{background:var(--border);border-radius:4px;height:4px;margin-top:32px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,var(--blue),var(--blue-mid));border-radius:4px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.pc{background:var(--card);border-radius:var(--radius);padding:28px;border:0.5px solid var(--border);box-shadow:var(--shadow);transition:transform .3s,box-shadow .3s}
+.pc:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.pn{font-size:12px;font-weight:500;color:var(--subtle);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:12px}
+.pc h4{font-family:'DM Serif Display',serif;font-size:20px;font-weight:400;margin-bottom:8px;line-height:1.2}
+.pc p{font-size:14px;color:var(--muted);line-height:1.6;font-weight:300}
+.pill{display:inline-flex;align-items:center;gap:5px;margin-top:16px;font-size:12px;font-weight:500;padding:5px 12px;border-radius:980px}
+.pl{background:rgba(52,199,89,0.12);color:#1a7a38}
+@media(prefers-color-scheme:dark){.pl{color:#30d158}}
+.pa{background:rgba(255,159,10,0.12);color:#a05c00}
+@media(prefers-color-scheme:dark){.pa{color:#ff9f0a}}
+.ps{background:var(--bg);color:var(--subtle)}
+.pd{width:5px;height:5px;border-radius:50%;background:currentColor}
+.tools-sec{background:var(--bg)}
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:700px){.bento{grid-template-columns:1fr}}
+.tt{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);box-shadow:var(--shadow);overflow:hidden;transition:transform .3s,box-shadow .3s;cursor:pointer}
+.tt:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+.tth{padding:28px 28px 20px}
+.tttag{font-size:11px;font-weight:500;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px}
+.tt h3{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:8px}
+.tt p{font-size:14px;color:var(--muted);line-height:1.6;font-weight:300}
+.ttf{padding:16px 28px;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.obtn{display:inline-flex;align-items:center;gap:6px;background:var(--blue);color:#fff;font-size:13px;font-weight:500;padding:8px 18px;border-radius:980px;border:none;cursor:pointer;transition:opacity .2s}
+.obtn:hover{opacity:0.85}
+.ctag{font-size:12px;color:var(--subtle);background:var(--bg);padding:6px 14px;border-radius:980px;border:0.5px solid var(--border)}
+.tpanel{display:none;background:var(--card);border-radius:var(--radius);border:1px solid var(--blue);box-shadow:var(--shadow-lg);margin-top:16px;overflow:hidden;animation:ei .3s ease}
+.tpanel.open{display:block}
+.tpanel-insight{border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px;transition:all .3s}
+@keyframes ei{from{opacity:0;transform:scale(0.98)}to{opacity:1;transform:scale(1)}}
+.tph{display:flex;align-items:center;justify-content:space-between;padding:24px 28px 0}
+.tph h3{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400}
+.xb{width:28px;height:28px;border-radius:50%;background:var(--bg);border:0.5px solid var(--border);color:var(--muted);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s}
+.xb:hover{background:var(--border)}
+.tpb{padding:24px 28px 28px}
+.cr{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.cr label{font-size:13px;color:var(--muted);min-width:140px}
+.cr input[type=range]{flex:1;accent-color:var(--blue)}
+.cr .v{font-size:14px;font-weight:500;color:var(--text);min-width:44px;text-align:right}
+.mr{display:flex;gap:12px;margin:20px 0;flex-wrap:wrap}
+.mt{flex:1;min-width:110px;background:var(--bg);border-radius:var(--radius-sm);padding:14px 18px;border:0.5px solid var(--border)}
+.mt .mv{font-family:'DM Serif Display',serif;font-size:26px;font-weight:400;line-height:1}
+.mt .ml{font-size:11px;color:var(--subtle);margin-top:4px;text-transform:uppercase;letter-spacing:0.05em}
+.cw{position:relative;width:100%;height:220px}
+.lg{display:flex;gap:16px;font-size:12px;color:var(--subtle);flex-wrap:wrap;margin-top:12px}
+.lg span{display:flex;align-items:center;gap:5px}
+.lg i{display:inline-block;width:20px;height:2px;border-radius:1px}
+.about-sec{background:var(--bg2)}
+.ai{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center}
+@media(max-width:700px){.ai{grid-template-columns:1fr}}
+.al p{font-size:17px;color:var(--muted);line-height:1.8;font-weight:300;margin-bottom:16px}
+.stags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+.stag{background:var(--card);border:0.5px solid var(--border);border-radius:980px;padding:7px 16px;font-size:13px;color:var(--muted);box-shadow:var(--shadow)}
+.acard{background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);box-shadow:var(--shadow-md);padding:36px;text-align:center}
+.acard h3{font-family:'DM Serif Display',serif;font-size:22px;font-weight:400;margin-bottom:4px;margin-top:20px}
+.acard .role{font-size:13px;color:var(--blue);font-weight:500;margin-bottom:20px}
+.cbs{display:flex;flex-direction:column;gap:10px}
+.cb{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:var(--radius-sm);font-size:14px;font-weight:500;text-decoration:none;transition:all .2s;border:0.5px solid var(--border)}
+.cb.li{background:#0a66c2;color:#fff;border-color:#0a66c2}
+.cb.li:hover{background:#0077b5}
+.cb.em{background:var(--bg);color:var(--text)}
+.cb.em:hover{background:var(--border)}
+.lisec{background:var(--bg);padding:100px max(24px,6vw);text-align:center}
+.lisec p{font-size:17px;color:var(--muted);font-weight:300;max-width:480px;margin:0 auto 40px}
+.libtn{display:inline-flex;align-items:center;gap:10px;background:#0a66c2;color:#fff;padding:14px 32px;border-radius:980px;text-decoration:none;font-size:17px;font-weight:500;transition:all .2s}
+.libtn:hover{background:#0077b5;transform:scale(1.02)}
+footer{padding:28px max(24px,6vw);background:var(--bg2);border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+footer .fl{font-family:'DM Serif Display',serif;font-size:16px}
+footer p{font-size:13px;color:var(--subtle)}
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s ease,transform .7s ease}
+.reveal.visible{opacity:1;transform:none}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="nav-logo">Curious Mind</span>
+  <ul class="nav-links">
+    <li><a href="#statistics">Statistics</a></li>
+    <li><a href="#tools">Tools</a></li>
+    <li><a href="#about">About</a></li>
+  </ul>
+  <a href="#about" class="nav-cta">Hire Me</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="eyebrow-pill"><span class="edot"></span>Manufacturing Engineering</div>
+  <h1 class="htitle">Where <em>curiosity</em><br>meets the floor</h1>
+  <p class="hsub"><strong style="color:var(--red);font-weight:700">Interactive tools</strong> and real-world statistics insights for manufacturing engineers who want to understand their processes — not just measure them.</p>
+  <div class="hbtns">
+    <a href="#statistics" class="btnp">Explore the Series</a>
+    <a href="#tools" class="btng">Try the Tools</a>
+  </div>
+  <div class="hnums">
+    <div class="hnum"><div class="n">12</div><div class="l">Posts planned</div></div>
+    <div class="hnum"><div class="n">7</div><div class="l">Posts live</div></div>
+    <div class="hnum"><div class="n" style="color:var(--red);font-size:42px;font-weight:700">6</div><div class="l" style="color:var(--red);font-weight:700;font-size:15px;letter-spacing:-0.2px">Interactive tools ★</div></div>
+  </div>
+</section>
+
+<section class="stats-sec" id="statistics">
+  <div class="inner">
+    <div class="sintro reveal">
+      <div>
+        <div class="ey">LinkedIn Series</div>
+        <h2 class="st">Statistics for<br><em>Manufacturing</em></h2>
+        <p class="ss">A 12-part series breaking down the statistics every manufacturing engineer should know — written for the floor, not the classroom.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div class="slbl"><span class="sd"></span>8 posts live</div>
+          <div class="slbl"><span class="sd a"></span>Post 9 coming</div>
+          <div class="slbl"><span class="sd g"></span>5 in progress</div>
+        </div>
+        <div class="pbar"><div class="pfill" style="width:66%"></div></div>
+        <p style="font-size:13px;color:var(--subtle);margin-top:10px">8 of 12 published — 66%</p>
+      </div>
+      <div>
+        <div style="background:var(--card);border-radius:var(--radius);border:0.5px solid var(--border);box-shadow:var(--shadow-md);padding:28px">
+          <p style="font-size:13px;color:var(--subtle);margin-bottom:8px;font-weight:500;text-transform:uppercase;letter-spacing:0.05em">Why this series?</p>
+          <p style="font-size:17px;font-family:'DM Serif Display',serif;font-weight:400;line-height:1.5">"Statistics kept saving me on the floor. I built this series so every engineer has the same tools."</p>
+          <div style="height:1px;background:var(--border);margin:20px 0"></div>
+          <p style="font-size:14px;color:var(--muted);font-weight:300">Each post comes with an interactive tool so you can feel the concept — not just read about it.</p>
+        </div>
+      </div>
+    </div>
+    <div class="pgrid reveal">
+      <div class="pc"><div class="pn">Post 01</div><h4>Why Data Matters on the Floor</h4><p>The case for making decisions with numbers, not gut feel.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 02</div><h4>Mean, Median &amp; Mode</h4><p>Three ways to describe a center — and when each one quietly lies to you.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 03</div><h4>Range vs Variance</h4><p>The first tools for measuring spread, and their hidden weaknesses.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 04</div><h4>Standard Deviation</h4><p>If average tells you where the process sits, standard deviation tells you how much it wanders.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 05</div><h4>The Bell Curve</h4><p>Why every stable process produces one — and what happens when tails touch spec limits.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 06</div><h4>Cp &amp; Cpk</h4><p>The single most important number in process capability. Does your process fit the spec?</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 07</div><h4>Control Charts &amp; SPC</h4><p>How to know if a process change is real signal — or just noise.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc"><div class="pn">Post 08</div><h4>Gage R&amp;R</h4><p>Are your measurements trustworthy? Most engineers never stop to check.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
+      <div class="pc" style="border-color:rgba(255,159,10,0.3)"><div class="pn">Post 09</div><h4>Correlation vs Causation</h4><p>The difference between a clue and a root cause.</p><div class="pill pa"><span class="pd"></span>Up next</div></div>
+      <div class="pc"><div class="pn">Post 10</div><h4>DOE Basics</h4><p>Design of Experiments: the tool that separates junior engineers from senior ones.</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
+      <div class="pc"><div class="pn">Post 11</div><h4>Sampling Strategies</h4><p>How many parts do you actually need to measure?</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
+      <div class="pc" style="border-color:rgba(0,113,227,0.25);background:linear-gradient(145deg,var(--card),var(--blue-light))"><div class="pn">Post 12</div><h4>Putting It All Together</h4><p>A full process story — from raw data to confident engineering decisions.</p><div class="pill ps"><span class="pd"></span>The finale</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="tools-sec" id="tools">
+  <div class="inner">
+    <div class="reveal" style="text-align:center;max-width:560px;margin:0 auto 60px">
+      <div class="ey">Interactive Tools</div>
+      <h2 class="st">Feel the concept.<br><em>See the process.</em></h2>
+      <p class="ss" style="margin:0 auto">Each tool is built around a post. Drag sliders, click scenarios, take the quiz — watch your process in real time.</p>
+    </div>
+    <div class="bento reveal">
+      <div class="tt" id="bell-tile" onclick="openTool('bell')">
+        <div class="tth"><div class="tttag">Post 05</div><h3>Bell Curve Explorer</h3><p>Adjust mean and standard deviation. Watch yield and Cpk update live as the distribution shifts.</p></div>
+        <div style="padding:0 28px 20px"><svg viewBox="0 0 280 80" width="100%"><defs><linearGradient id="bg1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#0071e3" stop-opacity="0.4"/><stop offset="100%" stop-color="#0071e3" stop-opacity="0.02"/></linearGradient></defs><path d="M10,75 Q30,73 50,65 Q70,50 90,28 Q110,8 140,4 Q170,8 190,28 Q210,50 230,65 Q250,73 270,75 Z" fill="url(#bg1)" stroke="#0071e3" stroke-width="1.5"/><line x1="72" y1="4" x2="72" y2="75" stroke="#ff3b30" stroke-width="1" stroke-dasharray="4,3"/><line x1="208" y1="4" x2="208" y2="75" stroke="#ff3b30" stroke-width="1" stroke-dasharray="4,3"/><text x="72" y="12" fill="#ff3b30" font-size="8" text-anchor="middle" font-family="sans-serif">LSL</text><text x="208" y="12" fill="#ff3b30" font-size="8" text-anchor="middle" font-family="sans-serif">USL</text></svg></div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Yield &#xB7; Cpk &#xB7; Status</span></div>
+      </div>
+      <div class="tt" id="sd-tile" onclick="openTool('sd')">
+        <div class="tth"><div class="tttag">Post 04</div><h3>Standard Deviation Visualizer</h3><p>See what tight vs scattered looks like. Compare how &#x3C3; shapes your distribution and defect risk.</p></div>
+        <div style="padding:0 28px 20px"><div style="display:flex;gap:3px;align-items:flex-end;height:60px;width:100%"><div style="flex:1;height:15%;background:#ff3b30;border-radius:3px 3px 0 0;opacity:0.7"></div><div style="flex:1;height:28%;background:#ff9f0a;border-radius:3px 3px 0 0;opacity:0.7"></div><div style="flex:1;height:48%;background:#0071e3;border-radius:3px 3px 0 0"></div><div style="flex:1;height:72%;background:#0071e3;border-radius:3px 3px 0 0"></div><div style="flex:1;height:100%;background:#0071e3;border-radius:3px 3px 0 0"></div><div style="flex:1;height:72%;background:#0071e3;border-radius:3px 3px 0 0"></div><div style="flex:1;height:48%;background:#0071e3;border-radius:3px 3px 0 0"></div><div style="flex:1;height:28%;background:#ff9f0a;border-radius:3px 3px 0 0;opacity:0.7"></div><div style="flex:1;height:15%;background:#ff3b30;border-radius:3px 3px 0 0;opacity:0.7"></div></div></div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Spread &#xB7; Risk &#xB7; Range</span></div>
+      </div>
+      <div class="tt" id="cpk-tile" onclick="openTool('cpk')">
+        <div class="tth"><div class="tttag">Post 06</div><h3>Cp &amp; Cpk Scenario Explorer</h3><p>Walk through 3 real process development stages. See what Cp and Cpk each tell you — and what action each demands.</p></div>
+        <div style="padding:0 28px 20px"><div style="display:flex;gap:6px"><div style="flex:1;background:#FCEBEB;border-radius:8px;padding:8px;text-align:center;font-size:11px;font-weight:500;color:#A32D2D">Wide<br><span style="font-size:15px">Cp&lt;1</span></div><div style="display:flex;align-items:center;color:var(--subtle);font-size:18px">&#x2192;</div><div style="flex:1;background:#FAEEDA;border-radius:8px;padding:8px;text-align:center;font-size:11px;font-weight:500;color:#633806">Off-center<br><span style="font-size:15px">Cp&#x2260;Cpk</span></div><div style="display:flex;align-items:center;color:var(--subtle);font-size:18px">&#x2192;</div><div style="flex:1;background:#EAF3DE;border-radius:8px;padding:8px;text-align:center;font-size:11px;font-weight:500;color:#27500A">Capable<br><span style="font-size:15px">Cp&#x2248;Cpk</span></div></div></div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Cp &#xB7; Cpk &#xB7; Yield</span></div>
+      </div>
+      <div class="tt" id="quiz-tile" onclick="openTool('quiz')">
+        <div class="tth"><div class="tttag">Post 06 &#x2014; Challenge</div><h3>Cp &amp; Cpk Decision Quiz</h3><p>5 real process scenarios. Read the chart and numbers — then decide what you&#x2019;d do next. Instant feedback on every answer.</p></div>
+        <div style="padding:0 28px 20px"><div style="display:flex;flex-direction:column;gap:6px"><div style="background:var(--bg);border-radius:8px;padding:9px 14px;font-size:13px;color:var(--muted)">Cp = 1.67, Cpk = 0.78 &#x2014; what do you do?</div><div style="background:var(--bg);border-radius:8px;padding:9px 14px;font-size:13px;color:var(--muted)">Cpk = 0.29, mean near USL &#x2014; first action?</div><div style="background:var(--bg);border-radius:8px;padding:9px 14px;font-size:13px;color:var(--muted)">Cp &#x2248; Cpk = 1.75 &#x2014; what&#x2019;s next?</div></div></div>
+        <div class="ttf"><button class="obtn">Take the quiz &#x2192;</button><span style="font-size:12px;color:var(--subtle)">5 scenarios &#xB7; Scored</span></div>
+      </div>
+      <div class="tt" id="spc-tile" onclick="openTool('spc')">
+        <div class="tth"><div class="tttag">Post 07</div><h3>SPC Control Chart</h3><p>Watch a live process run in real time. Inject a shift, drift, or spike — see instantly how the chart signals and when to act.</p></div>
+        <div style="padding:0 28px 20px">
+          <svg viewBox="0 0 280 70" width="100%">
+            <line x1="0" y1="14" x2="280" y2="14" stroke="#ff3b30" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="0" y1="56" x2="280" y2="56" stroke="#ff3b30" stroke-width="1" stroke-dasharray="4,3"/>
+            <line x1="0" y1="35" x2="280" y2="35" stroke="#86868b" stroke-width="1" stroke-dasharray="3,4"/>
+            <polyline points="0,34 25,32 50,37 75,30 100,33 125,36 150,29 175,38 200,32 225,34 250,31 275,35" fill="none" stroke="#0071e3" stroke-width="2"/>
+            <circle cx="100" cy="8" r="4" fill="#ff3b30"/>
+            <polyline points="175,38 200,25 225,12" fill="none" stroke="#ff9f0a" stroke-width="2" stroke-dasharray="4,2"/>
+          </svg>
+        </div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Live &#xB7; Animate &#xB7; Inject events</span></div>
+      </div>
+      <div class="tt" id="grr-tile" onclick="openTool('grr')">
+        <div class="tth"><div class="tttag">Post 08</div><h3>Gage R&amp;R Visualizer</h3><p>Drag the slider to see how gage variation eats into your tolerance window — and watch your usable process space shrink in real time.</p></div>
+        <div style="padding:0 28px 20px">
+          <div style="position:relative;height:48px;border-radius:8px;overflow:hidden;border:1.5px solid #378ADD;background:rgba(55,138,221,0.08)">
+            <div style="position:absolute;top:0;bottom:0;left:0;width:25%;background:rgba(226,75,74,0.25);border-right:2px solid #E24B4A;display:flex;align-items:center;justify-content:center"><span style="font-size:10px;font-weight:500;color:#A32D2D">Gage noise</span></div>
+            <div style="position:absolute;top:0;bottom:0;left:25%;width:45%;background:rgba(99,153,34,0.18);border-right:2px dashed #3B6D11;border-left:2px dashed #3B6D11;display:flex;align-items:center;justify-content:center"><span style="font-size:10px;font-weight:500;color:#27500A">Process variation</span></div>
+            <div style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--subtle)">Usable</div>
+          </div>
+        </div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">ndc &#xB7; Verdict &#xB7; Tolerance</span></div>
+      </div>
+    </div>
+
+    <div class="tpanel" id="bell-panel"></div>
+
+    <div class="tpanel" id="sd-panel"></div>
+
+    <div class="tpanel" id="cpk-panel"></div>
+
+    <div class="tpanel" id="quiz-panel"></div>
+
+    <div class="tpanel" id="spc-panel"></div>
+
+    <div class="tpanel" id="grr-panel"></div>
+
+  </div>
+</section>
+
+<section class="about-sec" id="about">
+  <div class="ai reveal">
+    <div class="al">
+      <div class="ey">About Me</div>
+      <h2 class="st">Engineering<br><em>with curiosity</em></h2>
+      <p>I'm a manufacturing engineer who believes the best process improvements start with actually understanding the data — not just collecting it.</p>
+      <p>This site exists because I kept answering the same statistics questions on the shop floor. Now the answers live here — visual, interactive, and free for every engineer who needs them.</p>
+      <p>If you're building a team that thinks this way, I'd love to connect.</p>
+      <div class="stags">
+        <span class="stag">Process Engineering</span><span class="stag">SPC &amp; Control Charts</span><span class="stag">Cp &amp; Cpk</span><span class="stag">DOE</span><span class="stag">Gage R&amp;R</span><span class="stag">Lean Manufacturing</span><span class="stag">Root Cause Analysis</span><span class="stag">Quality Systems</span>
+      </div>
+    </div>
+    <div>
+      <div class="acard">
+        <svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto">
+          <defs><linearGradient id="ag" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0071e3"/><stop offset="100%" stop-color="#34c759"/></linearGradient></defs>
+          <circle cx="40" cy="40" r="38" fill="url(#ag)" opacity="0.12"/>
+          <circle cx="40" cy="40" r="38" fill="none" stroke="url(#ag)" stroke-width="1.5"/>
+          <circle cx="40" cy="40" r="26" fill="none" stroke="url(#ag)" stroke-width="0.5" opacity="0.4"/>
+          <text x="40" y="37" text-anchor="middle" dominant-baseline="central" font-family="'DM Serif Display',serif" font-size="14" fill="#0071e3" letter-spacing="1.5">BP</text>
+          <text x="40" y="54" text-anchor="middle" dominant-baseline="central" font-family="'DM Serif Display',serif" font-size="10" font-style="italic" fill="#34c759">&#8767; eng</text>
+        </svg>
+        <h3>Brijesh Patel</h3>
+        <div class="role">Manufacturing Engineer &#xB7; Process &#xB7; Quality &#xB7; Data</div>
+        <div class="cbs">
+          <a href="https://www.linkedin.com/in/brijesh-patel/" class="cb li" target="_blank">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+            Connect on LinkedIn
+          </a>
+          <a href="/cdn-cgi/l/email-protection#c2a1b7b0abadb1abb6bba7aca5f2f5e4e1f4f6f9a5afa3abaeeca1adaf" class="cb em">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            curiosityeng07&#64;gmail.com
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lisec">
+  <div class="ey" style="display:flex;justify-content:center">Follow the Series</div>
+  <h2 class="st" style="text-align:center">Every post.<br><em>Every week.</em></h2>
+  <p>12 posts. One series. Everything you need to read your process with confidence.</p>
+  <a href="https://www.linkedin.com/in/brijesh-patel/" class="libtn" target="_blank">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+    Follow on LinkedIn
+  </a>
+</section>
+
+<footer>
+  <span class="fl">Curious Mind</span>
+  <p>Statistics for Manufacturing Engineers &#x2014; built with curiosity, not guesswork.</p>
+  <p style="font-size:11px;color:var(--subtle);width:100%;margin-top:6px">This site uses Google Analytics to understand visitor traffic. No personal data is collected. <a href="https://policies.google.com/privacy" target="_blank" style="color:var(--subtle);text-decoration:underline">Google Privacy Policy</a></p>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('visible')}),{threshold:0.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+
+
+const toolCache = {};
+async function openTool(id){
+  const p = document.getElementById(id+'-panel');
+  const isOpen = p.classList.contains('open');
+  document.querySelectorAll('.tpanel').forEach(x=>x.classList.remove('open'));
+  if(isOpen) return;
+  p.classList.add('open');
+  setTimeout(()=>p.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+  if(!toolCache[id]){
+    toolCache[id] = true;
+    try {
+      const res = await fetch('tools/'+id+'.html');
+      const html = await res.text();
+      p.innerHTML = html;
+      p.querySelectorAll('script').forEach(old=>{
+        const s = document.createElement('script');
+        if(old.src) s.src = old.src; else s.textContent = old.textContent;
+        document.body.appendChild(s);
+      });
+    } catch(err) {
+      p.innerHTML = '<div style="padding:28px;color:var(--muted)">Could not load this tool. Check your connection and try again.</div>';
+      console.error('Tool load failed:', id, err);
+    }
+  }
+}
+function closeTool(id,e){e&&e.stopPropagation();document.getElementById(id+'-panel').classList.remove('open')}
+
+const LSL=85,USL=115;
+function npdf(x,m,s){return Math.exp(-0.5*((x-m)/s)**2)/(s*Math.sqrt(2*Math.PI))}
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));const p=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))));const r=1-p*Math.exp(-x*x);return x>=0?r:-r}
+function ncdf(x,m,s){return 0.5*(1+erf((x-m)/(s*Math.sqrt(2))))}
+
+</script>
+</body>
+</html>

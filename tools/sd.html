@@ -1,0 +1,27 @@
+      <div class="tph"><h3>Standard Deviation Visualizer</h3><button class="xb" onclick="closeTool('sd',event)">&#x2715;</button></div>
+      <div class="tpb">
+        <div class="cr"><label>Std deviation (&#963;)</label><input type="range" id="sd-val" min="1" max="10" value="3" step="0.5"><span class="v" id="sd-val-out">3.0</span></div>
+        <div class="mr">
+          <div class="mt"><div class="mv" id="sd-type" style="color:var(--green)">Tight</div><div class="ml">Process type</div></div>
+          <div class="mt"><div class="mv" id="sd-range">&#177;6</div><div class="ml">&#177;2&#963; range</div></div>
+          <div class="mt"><div class="mv" id="sd-risk" style="color:var(--green)">Low risk</div><div class="ml">Defect risk</div></div>
+        </div>
+        <div class="cw"><canvas id="sdC"></canvas></div>
+        <p style="font-size:12px;color:var(--subtle);margin-top:10px">LSL = 85 &#xB7; USL = 115 &#xB7; Target = 100</p>
+      </div>
+<script>
+let sdChart;
+function sdData(sig){const labels=[],vals=[],colors=[];for(let x=76;x<=124;x+=2){labels.push(x.toString());vals.push(+npdf(x,100,sig).toFixed(6));colors.push(x<LSL||x>USL?'#ff3b30':'#0071e3')}return{labels,vals,colors}}
+function initSD(){const d=sdData(3);
+  sdChart=new Chart(document.getElementById('sdC'),{type:'bar',data:{labels:d.labels,datasets:[{data:d.vals,backgroundColor:d.colors,borderRadius:4,borderWidth:0}]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:150},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{ticks:{color:'#86868b',font:{size:10}},grid:{display:false}},y:{display:false}}}});
+  Chart.register({id:'sL2',afterDraw(c){const{ctx,scales:{x}}=c;[LSL,USL].forEach(v=>{const lbl=v.toString();const idx=c.data.labels.indexOf(lbl);if(idx<0)return;const px=x.getPixelForValue(idx);ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#ff3b30';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,c.chartArea.top);ctx.lineTo(px,c.chartArea.bottom);ctx.stroke();ctx.restore()})}}); updSD();}
+function updSD(){if(!sdChart)return;const sig=+document.getElementById('sd-val').value;const d=sdData(sig);
+  sdChart.data.labels=d.labels;sdChart.data.datasets[0].data=d.vals;sdChart.data.datasets[0].backgroundColor=d.colors;
+  let type,sc,risk;if(sig<=3){type='Tight';sc='var(--green)';risk='Low risk'}else if(sig<=6){type='Moderate';sc='var(--amber)';risk='Medium'}else{type='Wide';sc='var(--red)';risk='High risk'}
+  document.getElementById('sd-type').textContent=type;document.getElementById('sd-type').style.color=sc;
+  document.getElementById('sd-range').textContent='\u00b1'+Math.round(sig*2);
+  document.getElementById('sd-risk').textContent=risk;document.getElementById('sd-risk').style.color=sc;sdChart.update();}
+document.getElementById('sd-val').addEventListener('input',e=>{document.getElementById('sd-val-out').textContent=(+e.target.value).toFixed(1);updSD()});
+initSD();
+</script>

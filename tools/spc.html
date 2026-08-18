@@ -1,0 +1,136 @@
+      <div class="tph"><h3>SPC Control Chart — Live Process Monitor</h3><button class="xb" onclick="closeTool('spc',event)">&#x2715;</button></div>
+      <div class="tpb">
+        <div style="background:var(--card);border-radius:var(--radius-sm);border:0.5px solid var(--border);padding:16px 18px;margin-bottom:16px">
+          <div style="font-size:11px;font-weight:500;color:var(--blue);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:12px">How to use this tool</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="min-width:24px;height:24px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+              <div><div style="font-size:13px;font-weight:500;color:var(--text)">Watch the process run</div><div style="font-size:12px;color:var(--muted);margin-top:2px">A new measurement plots every second. Points between the dashed red lines = in control (green).</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="min-width:24px;height:24px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+              <div><div style="font-size:13px;font-weight:500;color:var(--text)">Inject a real-world event</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Click a button to simulate what happens on the floor — batch change, tool wear, or a one-off disturbance.</div></div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <div style="min-width:24px;height:24px;border-radius:50%;background:#E6F1FB;color:#0C447C;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0">3</div>
+              <div><div style="font-size:13px;font-weight:500;color:var(--text)">Read the signal in the log</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Red dots = out of control. The event log explains what happened and why. Hit Reset anytime.</div></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px">
+          <div id="spc-pill" style="display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:6px 14px;border-radius:980px;background:#EAF3DE;color:#27500A">
+            <span id="spc-dot" style="width:8px;height:8px;border-radius:50%;background:#3B6D11;animation:spulse 1.5s ease-in-out infinite;flex-shrink:0"></span>
+            <span id="spc-st">Process in control</span>
+          </div>
+          <span style="font-size:12px;color:var(--subtle)" id="spc-ec">Points: 0 &nbsp;|&nbsp; Signals: 0</span>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <button onclick="spcInject('shift')" style="padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid #BA7517;background:#FAEEDA;cursor:pointer;font-size:12px;font-weight:500;color:#633806">&#x21E7; Sudden shift</button>
+          <button onclick="spcInject('drift')" style="padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid #185FA5;background:#E6F1FB;cursor:pointer;font-size:12px;font-weight:500;color:#0C447C">&#x2197; Gradual drift</button>
+          <button onclick="spcInject('spike')" style="padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid #A32D2D;background:#FCEBEB;cursor:pointer;font-size:12px;font-weight:500;color:#791F1F">&#x26A1; Single spike</button>
+          <button onclick="spcInject('reset')" style="padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid #3B6D11;background:#EAF3DE;cursor:pointer;font-size:12px;font-weight:500;color:#27500A">&#x21BA; Reset</button>
+          <button id="spc-pb" onclick="spcTogglePause()" style="padding:8px 16px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--card);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted)">&#x23F8; Pause</button>
+        </div>
+        <div class="mr">
+          <div class="mt"><div class="mv" id="spc-ucl">103.0</div><div class="ml">UCL</div></div>
+          <div class="mt"><div class="mv" id="spc-mean">100.0</div><div class="ml">Mean</div></div>
+          <div class="mt"><div class="mv" id="spc-lcl">97.0</div><div class="ml">LCL</div></div>
+          <div class="mt"><div class="mv" id="spc-last" style="color:var(--muted)">&#x2014;</div><div class="ml">Last point</div></div>
+        </div>
+        <div class="cw"><canvas id="spcC"></canvas></div>
+        <div class="lg" style="margin-top:10px">
+          <span><i style="background:#0071e3"></i>Process data</span>
+          <span><i style="height:0;border-top:2px dashed #ff3b30;background:transparent"></i>UCL / LCL (&#xB13;3&#x3C3;)</span>
+          <span><i style="height:0;border-top:2px dashed #86868b;background:transparent"></i>Center line</span>
+          <span><span style="width:10px;height:10px;border-radius:50%;background:#ff3b30;display:inline-block"></span>Out of control</span>
+        </div>
+        <div id="spc-log" style="background:var(--bg);border-radius:var(--radius-sm);padding:10px 14px;margin-top:12px;font-size:12px;color:var(--muted);border:0.5px solid var(--border);line-height:1.6">
+          <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#3B6D11;margin-right:6px;vertical-align:middle"></span>Process started — running in control. Use the buttons above to inject events.
+        </div>
+      </div>
+<script>
+const SPC_MEAN=100,SPC_S=1.0,SPC_UCL=103,SPC_LCL=97,SPC_MAX=30;
+let spcMode='normal',spcDrift=0,spcPaused=false,spcPts=0,spcSigs=0,spcLastOOC=false,spcChart=null,spcTimer=null;
+function spcRandn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function spcNext(){
+  if(spcMode==='shift')return +(SPC_MEAN+2.5+SPC_S*spcRandn()).toFixed(2);
+  if(spcMode==='drift'){spcDrift=Math.min(spcDrift+0.12,3.5);return +(SPC_MEAN+spcDrift+SPC_S*spcRandn()).toFixed(2)}
+  if(spcMode==='spike')return +(SPC_MEAN+SPC_S*spcRandn()+(Math.random()<0.1?(Math.random()>.5?4:-4):0)).toFixed(2);
+  return +(SPC_MEAN+SPC_S*spcRandn()).toFixed(2);
+}
+function initSPC(){
+  const style=document.createElement('style');
+  style.textContent='@keyframes spulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.3)}}@keyframes spulse-a{0%,100%{opacity:1}50%{opacity:.3;transform:scale(1.4)}}@keyframes spulse-r{0%,100%{opacity:1}50%{opacity:.2;transform:scale(1.5)}}';
+  document.head.appendChild(style);
+  spcChart=new Chart(document.getElementById('spcC'),{
+    type:'line',
+    data:{labels:[],datasets:[
+      {data:[],borderColor:'#0071e3',backgroundColor:'rgba(0,113,227,0.06)',fill:true,tension:0.3,pointRadius:[],pointBackgroundColor:[],pointBorderColor:[],pointBorderWidth:1.5,borderWidth:2},
+      {data:[],borderColor:'#ff3b30',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false},
+      {data:[],borderColor:'#ff3b30',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false},
+      {data:[],borderColor:'#86868b',borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,animation:{duration:180},
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw!==null?'Value: '+Number(c.raw).toFixed(2):''}}},
+      scales:{x:{ticks:{color:'#888',font:{size:9},maxTicksLimit:10},grid:{color:'rgba(128,128,128,0.05)'}},
+        y:{min:SPC_LCL-2.5,max:SPC_UCL+2.5,ticks:{color:'#888',font:{size:9},stepSize:1},grid:{color:'rgba(128,128,128,0.07)'}}}}
+  });
+  spcTimer=setInterval(spcTick,900);
+}
+function spcTick(){
+  if(spcPaused||!spcChart)return;
+  const v=spcNext();spcPts++;
+  const lb=spcChart.data.labels,ds=spcChart.data.datasets;
+  lb.push(spcPts);ds[0].data.push(v);
+  const ooc=v>SPC_UCL||v<SPC_LCL;if(ooc)spcSigs++;
+  ds[0].pointBackgroundColor.push(ooc?'#ff3b30':'#0071e3');
+  ds[0].pointBorderColor.push(ooc?'#ff3b30':'#0071e3');
+  ds[0].pointRadius.push(ooc?7:4);
+  if(lb.length>SPC_MAX){lb.shift();ds[0].data.shift();ds[0].pointBackgroundColor.shift();ds[0].pointBorderColor.shift();ds[0].pointRadius.shift()}
+  const n=lb.length;
+  ds[1].data=Array(n).fill(SPC_UCL);ds[2].data=Array(n).fill(SPC_LCL);ds[3].data=Array(n).fill(SPC_MEAN);
+  spcChart.update('none');
+  document.getElementById('spc-last').textContent=v.toFixed(2);
+  document.getElementById('spc-last').style.color=ooc?'#ff3b30':'var(--text)';
+  document.getElementById('spc-ec').textContent='Points: '+spcPts+' \u00a0|\u00a0 Signals: '+spcSigs;
+  spcUpdStatus(ooc,v);
+}
+function spcUpdStatus(ooc,v){
+  const pill=document.getElementById('spc-pill'),txt=document.getElementById('spc-st'),dot=document.getElementById('spc-dot');
+  if(spcMode==='drift'&&spcDrift>1.8){
+    pill.style.cssText='display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:6px 14px;border-radius:980px;background:#FAEEDA;color:#633806';
+    dot.style.cssText='width:8px;height:8px;border-radius:50%;background:#BA7517;animation:spulse-a 1s ease-in-out infinite;flex-shrink:0';
+    txt.textContent='Warning \u2014 process drifting';
+  } else if(ooc){
+    pill.style.cssText='display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:6px 14px;border-radius:980px;background:#FCEBEB;color:#A32D2D';
+    dot.style.cssText='width:8px;height:8px;border-radius:50%;background:#E24B4A;animation:spulse-r .7s ease-in-out infinite;flex-shrink:0';
+    txt.textContent='Out of control \u2014 investigate!';
+    if(!spcLastOOC)spcLog('#E24B4A','Signal at '+v.toFixed(2)+' \u2014 point outside control limit. Assignable cause suspected.');
+    spcLastOOC=true;
+  } else {
+    pill.style.cssText='display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:6px 14px;border-radius:980px;background:#EAF3DE;color:#27500A';
+    dot.style.cssText='width:8px;height:8px;border-radius:50%;background:#3B6D11;animation:spulse 1.5s ease-in-out infinite;flex-shrink:0';
+    if(spcMode==='normal')txt.textContent='Process in control';
+    else if(spcMode==='shift')txt.textContent='Mean shifted \u2014 signals expected';
+    else if(spcMode==='spike')txt.textContent='Monitoring for spikes';
+    else txt.textContent='Drift starting \u2014 watch the trend';
+    spcLastOOC=false;
+  }
+}
+function spcLog(col,msg){document.getElementById('spc-log').innerHTML='<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+col+';margin-right:6px;vertical-align:middle"></span>'+msg}
+function spcInject(t){
+  spcMode=t;spcDrift=0;spcLastOOC=false;
+  const m={shift:['#BA7517','Sudden shift injected \u2014 mean jumped +2.5\u03c3. Typical cause: new batch, operator change.'],
+    drift:['#185FA5','Gradual drift started \u2014 mean slowly creeping up. Typical cause: tool wear, temperature change.'],
+    spike:['#E24B4A','Spike mode active \u2014 occasional outliers injected. Typical cause: measurement error, brief disturbance.'],
+    reset:['#3B6D11','Reset to normal \u2014 common cause variation only.']};
+  spcLog(m[t][0],m[t][1]);
+  if(t==='reset'){
+    document.getElementById('spc-pill').style.cssText='display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:500;padding:6px 14px;border-radius:980px;background:#EAF3DE;color:#27500A';
+    document.getElementById('spc-dot').style.cssText='width:8px;height:8px;border-radius:50%;background:#3B6D11;animation:spulse 1.5s ease-in-out infinite;flex-shrink:0';
+    document.getElementById('spc-st').textContent='Process in control';
+  }
+}
+function spcTogglePause(){spcPaused=!spcPaused;const b=document.getElementById('spc-pb');b.textContent=spcPaused?'\u25B6 Resume':'\u23F8 Pause';}
+initSPC();
+</script>

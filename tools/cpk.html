@@ -1,0 +1,48 @@
+      <div class="tph"><h3>Cp &amp; Cpk Scenario Explorer</h3><button class="xb" onclick="closeTool('cpk',event)">&#x2715;</button></div>
+      <div class="tpb">
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+          <button id="cpk-btn0" onclick="setCpkScene(0)" style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid #E24B4A;background:#FCEBEB;cursor:pointer;font-size:12px;font-weight:500;color:#A32D2D;line-height:1.3;text-align:center">Stage 1<br><span style="font-weight:400">Wide process</span></button>
+          <button id="cpk-btn1" onclick="setCpkScene(1)" style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center">Stage 2<br><span style="font-weight:400">Capable, off-center</span></button>
+          <button id="cpk-btn2" onclick="setCpkScene(2)" style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center">Stage 3<br><span style="font-weight:400">Centered &amp; capable</span></button>
+        </div>
+        <div class="mr">
+          <div class="mt"><div class="mv" id="cpk-cp">0.59</div><div class="ml">Cp</div></div>
+          <div class="mt"><div class="mv" id="cpk-cpk" style="color:var(--red)">0.52</div><div class="ml">Cpk</div></div>
+          <div class="mt"><div class="mv" id="cpk-yield" style="color:var(--red)">62%</div><div class="ml">Yield</div></div>
+          <div class="mt"><div class="mv" id="cpk-status" style="color:var(--red);font-size:14px;padding-top:4px">Not capable</div><div class="ml">Status</div></div>
+        </div>
+        <div id="cpk-insight" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid #E24B4A;background:#FCEBEB;color:#791F1F;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px"><strong>Spread is the problem.</strong> Parts spill past both limits. Reduce variation before centering.<div style="margin-top:6px"><span style="display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:4px 12px;border-radius:980px;background:#F09595;color:#501313">Focus: reduce variation</span></div></div>
+        <div class="cw"><canvas id="cpkC"></canvas></div>
+        <div class="lg" style="margin-top:10px"><span><i style="background:var(--blue)"></i>Distribution</span><span><i style="background:var(--green)"></i>In spec</span><span><i style="background:var(--red)"></i>Out of spec</span></div>
+      </div>
+<script>
+const cpkScenes=[
+  {mu:102,sigma:7.5,cls:'red',insight:'<strong>Spread is the problem.</strong> The bell is wider than the spec window — parts spill past both limits. Centering won\'t help yet. Reduce variation first.',focus:'Focus: reduce variation (lower \u03c3)',iBg:'#FCEBEB',iTxt:'#791F1F',iBd:'#E24B4A',fBg:'#F09595',fTxt:'#501313',bS:[['#E24B4A','#FCEBEB','#A32D2D'],['var(--border)','var(--bg)','var(--muted)'],['var(--border)','var(--bg)','var(--muted)']]},
+  {mu:107,sigma:3.2,cls:'amber',insight:'<strong>Variation is under control — but the process has drifted.</strong> Cp is above 1.33 so the spread fits the spec. But the mean shifted right, so Cpk is low.',focus:'Focus: center the process (adjust mean)',iBg:'#FAEEDA',iTxt:'#633806',iBd:'#BA7517',fBg:'#FAC775',fTxt:'#412402',bS:[['var(--border)','var(--bg)','var(--muted)'],['#BA7517','#FAEEDA','#633806'],['var(--border)','var(--bg)','var(--muted)']]},
+  {mu:100,sigma:3.2,cls:'green',insight:'<strong>Cp \u2248 Cpk. Tight and centered.</strong> The spread fits comfortably inside the spec, and the mean sits at the target. Lock in the settings and monitor with SPC.',focus:'Status: maintain and monitor',iBg:'#EAF3DE',iTxt:'#27500A',iBd:'#3B6D11',fBg:'#C0DD97',fTxt:'#173404',bS:[['var(--border)','var(--bg)','var(--muted)'],['var(--border)','var(--bg)','var(--muted)'],['#3B6D11','#EAF3DE','#27500A']]}
+];
+let cpkChart=null;
+function cpkBD(mu,s){const xs=[],yI=[],yO=[];const st=Math.min(mu-Math.max(4*s,20),LSL-5),en=Math.max(mu+Math.max(4*s,20),USL+5);for(let i=0;i<=200;i++){const x=st+(en-st)*i/200;xs.push(+x.toFixed(2));const y=npdf(x,mu,s);if(x>=LSL&&x<=USL){yI.push(y);yO.push(0)}else{yI.push(0);yO.push(y)}}return{xs,yI,yO}}
+function initCpkChart(mu,s){const{xs,yI,yO}=cpkBD(mu,s);if(cpkChart){cpkChart.destroy()}
+  cpkChart=new Chart(document.getElementById('cpkC'),{type:'line',data:{labels:xs,datasets:[
+    {data:xs.map((x,i)=>({x,y:yI[i]})),fill:true,backgroundColor:'rgba(99,153,34,0.18)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yO[i]})),fill:true,backgroundColor:'rgba(226,75,74,0.22)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yI[i]+yO[i]})),fill:false,borderColor:'#0071e3',tension:0.4,pointRadius:0,borderWidth:2.5}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{type:'linear',min:Math.min(mu-4*s,LSL)-6,max:Math.max(mu+4*s,USL)+6,ticks:{stepSize:5,color:'#86868b',font:{size:10},callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(128,128,128,0.07)'}},y:{display:false,min:0}}}});
+  Chart.register({id:'cpkSL',afterDraw(c){const{ctx,scales:{x}}=c;[LSL,USL].forEach(v=>{const px=x.getPixelForValue(v);ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#E24B4A';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(px,c.chartArea.top);ctx.lineTo(px,c.chartArea.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#E24B4A';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(v===LSL?'LSL':'USL',px,c.chartArea.top+12);ctx.restore()})}}); }
+function setCpkScene(i){const s=cpkScenes[i];
+  const cp=+((USL-LSL)/(6*s.sigma)).toFixed(2),cpk=+Math.min((USL-s.mu)/(3*s.sigma),(s.mu-LSL)/(3*s.sigma)).toFixed(2);
+  const yld=+(( ncdf(USL,s.mu,s.sigma)-ncdf(LSL,s.mu,s.sigma))*100).toFixed(1);
+  const cMap={red:'var(--red)',amber:'var(--amber)',green:'var(--green)'};
+  const stMap={red:'Not capable',amber:'Off-center',green:'Capable'};
+  document.getElementById('cpk-cp').textContent=cp;
+  document.getElementById('cpk-cpk').textContent=cpk;document.getElementById('cpk-cpk').style.color=cMap[s.cls];
+  document.getElementById('cpk-yield').textContent=yld+'%';document.getElementById('cpk-yield').style.color=cMap[s.cls];
+  document.getElementById('cpk-status').textContent=stMap[s.cls];document.getElementById('cpk-status').style.color=cMap[s.cls];
+  const ins=document.getElementById('cpk-insight');ins.style.background=s.iBg;ins.style.color=s.iTxt;ins.style.borderLeftColor=s.iBd;
+  ins.innerHTML=s.insight+'<div style="margin-top:6px"><span style="display:inline-flex;align-items:center;font-size:12px;font-weight:500;padding:4px 12px;border-radius:980px;background:'+s.fBg+';color:'+s.fTxt+'">'+s.focus+'</span></div>';
+  [0,1,2].forEach(j=>{const b=document.getElementById('cpk-btn'+j);b.style.border='1.5px solid '+s.bS[j][0];b.style.background=s.bS[j][1];b.style.color=s.bS[j][2]});
+  if(cpkChart){const{xs,yI,yO}=cpkBD(s.mu,s.sigma);cpkChart.data.labels=xs;cpkChart.data.datasets[0].data=xs.map((x,k)=>({x,y:yI[k]}));cpkChart.data.datasets[1].data=xs.map((x,k)=>({x,y:yO[k]}));cpkChart.data.datasets[2].data=xs.map((x,k)=>({x,y:yI[k]+yO[k]}));cpkChart.options.scales.x.min=Math.min(s.mu-4*s.sigma,LSL)-6;cpkChart.options.scales.x.max=Math.max(s.mu+4*s.sigma,USL)+6;cpkChart.update();}}
+initCpkChart(cpkScenes[0].mu,cpkScenes[0].sigma);setCpkScene(0);
+</script>

@@ -1,0 +1,35 @@
+      <div class="tph"><h3>Bell Curve Explorer</h3><button class="xb" onclick="closeTool('bell',event)">&#x2715;</button></div>
+      <div class="tpb">
+        <div class="cr"><label>Process mean (&#956;)</label><input type="range" id="bc-mean" min="85" max="115" value="100" step="1"><span class="v" id="bc-mean-out">100</span></div>
+        <div class="cr"><label>Std deviation (&#963;)</label><input type="range" id="bc-sd" min="1" max="12" value="5" step="0.5"><span class="v" id="bc-sd-out">5.0</span></div>
+        <div class="mr">
+          <div class="mt"><div class="mv" id="bc-yield" style="color:var(--green)">99.9%</div><div class="ml">Yield</div></div>
+          <div class="mt"><div class="mv" id="bc-cpk">1.67</div><div class="ml">Cpk</div></div>
+          <div class="mt"><div class="mv" id="bc-status" style="color:var(--green)">Capable</div><div class="ml">Status</div></div>
+        </div>
+        <div class="cw"><canvas id="bcC"></canvas></div>
+        <div class="lg"><span><i style="background:var(--blue)"></i>Distribution</span><span><i style="background:var(--green)"></i>In spec</span><span><i style="background:var(--red)"></i>Out of spec</span></div>
+      </div>
+<script>
+let bcChart,bMu=100,bSig=5;
+function bellData(mu,sig){const xs=[],yIn=[],yOut=[];const st=Math.min(mu-Math.max(4*sig,18),LSL-3),en=Math.max(mu+Math.max(4*sig,18),USL+3);for(let i=0;i<=200;i++){const x=st+(en-st)*i/200;xs.push(+x.toFixed(2));const y=npdf(x,mu,sig);if(x>=LSL&&x<=USL){yIn.push(y);yOut.push(0)}else{yIn.push(0);yOut.push(y)}}return{xs,yIn,yOut}}
+function initBell(){const{xs,yIn,yOut}=bellData(bMu,bSig);
+  bcChart=new Chart(document.getElementById('bcC'),{type:'line',data:{labels:xs,datasets:[
+    {data:xs.map((x,i)=>({x,y:yIn[i]})),fill:true,backgroundColor:'rgba(52,199,89,0.15)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yOut[i]})),fill:true,backgroundColor:'rgba(255,59,48,0.2)',borderColor:'transparent',tension:0.4,pointRadius:0},
+    {data:xs.map((x,i)=>({x,y:yIn[i]+yOut[i]})),fill:false,borderColor:'#0071e3',tension:0.4,pointRadius:0,borderWidth:2}
+  ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:150},plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{type:'linear',min:LSL-8,max:USL+8,ticks:{stepSize:5,color:'#86868b',font:{size:10},callback:v=>Number.isInteger(v)?v:''},grid:{color:'rgba(0,0,0,0.04)'}},y:{display:false,min:0}}}});
+  Chart.register({id:'sL',afterDraw(c){const{ctx,scales:{x}}=c;[LSL,USL].forEach(v=>{const px=x.getPixelForValue(v);ctx.save();ctx.setLineDash([5,4]);ctx.strokeStyle='#ff3b30';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(px,c.chartArea.top);ctx.lineTo(px,c.chartArea.bottom);ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='#ff3b30';ctx.font='10px sans-serif';ctx.textAlign='center';ctx.fillText(v===LSL?'LSL':'USL',px,c.chartArea.top+12);ctx.restore()})}}); updBell();}
+function updBell(){if(!bcChart)return;const{xs,yIn,yOut}=bellData(bMu,bSig);
+  bcChart.data.labels=xs;bcChart.data.datasets[0].data=xs.map((x,i)=>({x,y:yIn[i]}));bcChart.data.datasets[1].data=xs.map((x,i)=>({x,y:yOut[i]}));bcChart.data.datasets[2].data=xs.map((x,i)=>({x,y:yIn[i]+yOut[i]}));
+  bcChart.options.scales.x.min=Math.min(bMu-4*bSig,LSL)-4;bcChart.options.scales.x.max=Math.max(bMu+4*bSig,USL)+4;
+  const yld=(ncdf(USL,bMu,bSig)-ncdf(LSL,bMu,bSig))*100,cpk=Math.min((USL-bMu)/(3*bSig),(bMu-LSL)/(3*bSig));
+  document.getElementById('bc-yield').textContent=yld.toFixed(1)+'%';document.getElementById('bc-cpk').textContent=cpk.toFixed(2);
+  let st,sc;if(cpk>=1.33){st='Capable';sc='var(--green)'}else if(cpk>=1.0){st='Marginal';sc='var(--amber)'}else{st='Not capable';sc='var(--red)'}
+  const sv=document.getElementById('bc-status');sv.textContent=st;sv.style.color=sc;
+  document.getElementById('bc-yield').style.color=yld>99?'var(--green)':yld>95?'var(--amber)':'var(--red)';bcChart.update();}
+document.getElementById('bc-mean').addEventListener('input',e=>{bMu=+e.target.value;document.getElementById('bc-mean-out').textContent=bMu;updBell()});
+document.getElementById('bc-sd').addEventListener('input',e=>{bSig=+e.target.value;document.getElementById('bc-sd-out').textContent=(+bSig).toFixed(1);updBell()});
+initBell();
+</script>

@@ -1,0 +1,80 @@
+      <div class="tph"><h3>Gage R&amp;R Visualizer</h3><button class="xb" onclick="closeTool('grr',event)">&#x2715;</button></div>
+      <div class="tpb">
+        <div class="cr"><label>Gage R&amp;R (% of tolerance)</label><input type="range" id="grr-v" min="1" max="60" value="15" step="1"><span class="v" id="grr-out">15%</span></div>
+        <div class="cr"><label>Process variation (% of tol.)</label><input type="range" id="pvar-v" min="10" max="80" value="50" step="1"><span class="v" id="pvar-out">50%</span></div>
+        <div class="mr">
+          <div class="mt"><div class="mv" id="grr-m" style="color:var(--amber)">15%</div><div class="ml">Gage R&amp;R</div></div>
+          <div class="mt"><div class="mv" id="grr-usable">85%</div><div class="ml">Usable tolerance</div></div>
+          <div class="mt"><div class="mv" id="grr-ndc" style="color:var(--green)">6 ✓</div><div class="ml">ndc</div></div>
+          <div class="mt"><div class="mv" id="grr-verdict" style="color:var(--green);font-size:14px;padding-top:4px">Acceptable</div><div class="ml">Verdict</div></div>
+        </div>
+        <div id="grr-status" class="tpanel-insight"></div>
+        <div style="font-size:11px;font-weight:500;color:var(--subtle);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">Tolerance window breakdown</div>
+        <div style="position:relative;height:64px;border-radius:var(--radius-sm);overflow:hidden;border:1.5px solid #378ADD;background:rgba(55,138,221,0.08);margin-bottom:8px">
+          <div id="grr-gz" style="position:absolute;top:0;bottom:0;left:0;width:15%;background:rgba(226,75,74,0.25);border-right:2px solid #E24B4A;transition:width .4s;display:flex;align-items:center;justify-content:center"><span id="grr-gz-lbl" style="font-size:10px;font-weight:500;color:#A32D2D;text-align:center;line-height:1.3">Gage<br>noise</span></div>
+          <div id="grr-pz" style="position:absolute;top:0;bottom:0;left:15%;width:35%;background:rgba(99,153,34,0.18);border-right:2px dashed #3B6D11;border-left:2px dashed #3B6D11;transition:all .4s;display:flex;align-items:center;justify-content:center"><span id="grr-pz-lbl" style="font-size:10px;font-weight:500;color:#27500A;text-align:center;line-height:1.3">Process<br>variation</span></div>
+          <span style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--subtle)">Usable &#x2192;</span>
+        </div>
+        <div class="lg">
+          <span><i style="background:rgba(226,75,74,0.25);border:1.5px solid #E24B4A;height:8px;border-radius:2px"></i>Gage variation</span>
+          <span><i style="background:rgba(99,153,34,0.18);border:1.5px dashed #3B6D11;height:8px;border-radius:2px"></i>Process variation</span>
+          <span><i style="background:rgba(55,138,221,0.08);border:1.5px solid #378ADD;height:8px;border-radius:2px"></i>Full tolerance</span>
+        </div>
+        <div style="background:var(--bg);border-radius:var(--radius-sm);padding:14px 16px;margin-top:14px;font-size:13px;color:var(--muted);line-height:1.8;border:0.5px solid var(--border)">
+          <strong style="color:var(--text);font-size:13px">ndc — Number of Distinct Categories</strong><br>
+          How many non-overlapping groups your gage can reliably distinguish within process variation. Think of it as the resolution of your measurement system.
+          <div style="background:var(--card);border-radius:8px;padding:10px 14px;margin:8px 0;font-family:monospace;font-size:12px;border:0.5px solid var(--border)">
+            ndc = 1.41 &times; (PV &divide; Gage R&amp;R)<br>
+            <span style="font-size:11px;color:var(--subtle)">1.41 = &radic;2 — two distributions need &ge;1 combined &sigma; separation to be distinct</span>
+          </div>
+          <strong style="color:var(--text);font-size:13px">Live calculation:</strong>
+          <div id="grr-ndc-calc" style="background:var(--card);border-radius:8px;padding:10px 14px;margin:8px 0;font-size:13px;border:0.5px solid var(--border);line-height:1.8"></div>
+          <div style="display:flex;flex-direction:column;gap:5px;margin-top:8px">
+            <div style="display:flex;gap:8px;align-items:center"><span style="min-width:64px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:#EAF3DE;color:#27500A;text-align:center">ndc &ge; 5</span><span style="font-size:12px;color:var(--muted)">Acceptable — enough resolution for control &amp; capability analysis</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><span style="min-width:64px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:#FAEEDA;color:#633806;text-align:center">ndc 2–4</span><span style="font-size:12px;color:var(--muted)">Marginal — detects gross changes only; not suitable for fine control</span></div>
+            <div style="display:flex;gap:8px;align-items:center"><span style="min-width:64px;font-size:11px;font-weight:500;padding:2px 8px;border-radius:4px;background:#FCEBEB;color:#A32D2D;text-align:center">ndc = 1</span><span style="font-size:12px;color:var(--muted)">Unacceptable — gage is effectively pass/fail only</span></div>
+          </div>
+        </div>
+      </div>
+<script>
+function initGRR(){updGRR();}
+function updGRR(){
+  const grr=+document.getElementById('grr-v').value;
+  const pv=+document.getElementById('pvar-v').value;
+  document.getElementById('grr-out').textContent=grr+'%';
+  document.getElementById('pvar-out').textContent=pv+'%';
+  const usable=Math.max(0,100-grr);
+  const ndcRaw=1.41*(pv/grr);
+  const ndc=Math.max(1,Math.floor(ndcRaw));
+  const grrColor=grr<10?'var(--green)':grr<30?'var(--amber)':'var(--red)';
+  const ndcColor=ndc>=5?'var(--green)':ndc>=2?'var(--amber)':'var(--red)';
+  document.getElementById('grr-m').textContent=grr+'%';
+  document.getElementById('grr-m').style.color=grrColor;
+  document.getElementById('grr-usable').textContent=usable+'%';
+  document.getElementById('grr-usable').style.color=usable>90?'var(--green)':usable>70?'var(--amber)':'var(--red)';
+  document.getElementById('grr-ndc').textContent=ndc>=5?ndc+' \u2713':ndc;
+  document.getElementById('grr-ndc').style.color=ndcColor;
+  let verdict,bg,txt,bd,msg;
+  if(grr<10){verdict='Acceptable';bg='#EAF3DE';txt='#27500A';bd='#3B6D11';msg='<strong>Acceptable \u2014 gage variation is '+grr+'% of tolerance.</strong> Measurement system is trustworthy. Proceed with confidence for Cpk, control charts, and process decisions.';}
+  else if(grr<30){verdict='Marginal';bg='#FAEEDA';txt='#633806';bd='#BA7517';msg='<strong>Marginal \u2014 gage variation is '+grr+'% of tolerance.</strong> Use with caution. Decisions near spec limits may not be reliable. Investigate calibration or operator training.';}
+  else{verdict='Unacceptable';bg='#FCEBEB';txt='#791F1F';bd='#E24B4A';msg='<strong>Unacceptable \u2014 gage variation is '+grr+'% of tolerance.</strong> You are measuring your gage, not your process. Fix the measurement system before any process improvement work.';}
+  document.getElementById('grr-verdict').textContent=verdict;
+  document.getElementById('grr-verdict').style.color=grr<10?'var(--green)':grr<30?'var(--amber)':'var(--red)';
+  document.getElementById('grr-verdict').style.fontSize=verdict.length>10?'13px':'14px';
+  const st=document.getElementById('grr-status');
+  st.style.background=bg;st.style.color=txt;st.style.borderLeftColor=bd;st.innerHTML=msg;
+  const ndcInterpret=ndc>=5?'Enough categories for process control \u2713':ndc>=2?'Marginal \u2014 detects gross changes only':'Unacceptable \u2014 effectively pass/fail only';
+  document.getElementById('grr-ndc-calc').innerHTML=
+    '1.41 \u00d7 ('+pv+' \u00f7 '+grr+') = 1.41 \u00d7 '+(pv/grr).toFixed(2)+' = <strong style="color:'+ndcColor.replace('var(--green)','#27500A').replace('var(--amber)','#BA7517').replace('var(--red)','#A32D2D')+'">'+ndc+'</strong><br>'+
+    '<span style="font-size:11px;color:'+txt+';">\u2192 '+ndcInterpret+'</span>';
+  const gW=Math.min(grr,100),pW=Math.min(pv,100-gW);
+  document.getElementById('grr-gz').style.width=gW+'%';
+  document.getElementById('grr-pz').style.left=gW+'%';
+  document.getElementById('grr-pz').style.width=pW+'%';
+  document.getElementById('grr-gz-lbl').style.display=gW>12?'block':'none';
+  document.getElementById('grr-pz-lbl').style.display=pW>12?'block':'none';
+}
+document.getElementById('grr-v').addEventListener('input',updGRR);
+document.getElementById('pvar-v').addEventListener('input',updGRR);
+initGRR();
+</script>
