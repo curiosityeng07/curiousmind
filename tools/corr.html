@@ -1,0 +1,90 @@
+<div class="tph"><h3>Correlation Explorer</h3><button class="xb" onclick="closeTool('corr',event)">&#x2715;</button></div>
+<div class="tpb">
+  <div style="display:flex;gap:8px;margin-bottom:16px">
+    <button id="corr-btn0" onclick="setCorrView(0)" style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid #E24B4A;background:#FCEBEB;cursor:pointer;font-size:12px;font-weight:500;color:#A32D2D;line-height:1.3;text-align:center">The Obvious Story<br><span style="font-weight:400">Defects by day of week</span></button>
+    <button id="corr-btn1" onclick="setCorrView(1)" style="flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center">Reveal the Real Driver<br><span style="font-weight:400">Same data, re-plotted</span></button>
+  </div>
+  <div class="mr">
+    <div class="mt"><div class="mv" id="corr-m1">4.5%</div><div class="ml" id="corr-m1-l">Monday avg defect</div></div>
+    <div class="mt"><div class="mv" id="corr-m2">3.0%</div><div class="ml" id="corr-m2-l">Other days avg</div></div>
+    <div class="mt"><div class="mv" id="corr-m3" style="color:var(--red)">Operator?</div><div class="ml" id="corr-m3-l">Suspected cause</div></div>
+  </div>
+  <div id="corr-insight" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid #E24B4A;background:#FCEBEB;color:#791F1F;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px"><strong>Monday looks like the problem.</strong> Defect rate is noticeably higher every Monday than any other day. The obvious move: talk to the Monday crew.</div>
+  <div class="cw"><canvas id="corrC"></canvas></div>
+  <div class="lg" id="corr-legend" style="margin-top:10px"><span><i style="background:#ff3b30"></i>Monday</span><span><i style="background:#0071e3"></i>Tue&#x2013;Fri</span></div>
+</div>
+<script>
+const corrData=[
+  {d:0,t:64,y:5.4},{d:0,t:66,y:4.9},{d:0,t:68,y:4.6},{d:0,t:70,y:4.1},{d:0,t:73,y:3.5},
+  {d:1,t:74,y:3.6},{d:1,t:76,y:3.1},{d:1,t:77,y:3.3},{d:1,t:79,y:2.8},{d:1,t:80,y:2.9},
+  {d:2,t:75,y:3.4},{d:2,t:77,y:3.0},{d:2,t:78,y:2.9},{d:2,t:79,y:2.7},{d:2,t:81,y:2.6},
+  {d:3,t:74,y:3.5},{d:3,t:76,y:3.2},{d:3,t:78,y:2.9},{d:3,t:80,y:2.6},{d:3,t:82,y:2.4},
+  {d:4,t:73,y:3.6},{d:4,t:75,y:3.3},{d:4,t:77,y:3.0},{d:4,t:79,y:2.8},{d:4,t:80,y:2.7}
+];
+const dayNames=['Mon','Tue','Wed','Thu','Fri'];
+function dayAvg(d){const pts=corrData.filter(p=>p.d===d);return pts.reduce((s,p)=>s+p.y,0)/pts.length}
+function pearson(xs,ys){
+  const n=xs.length,mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;
+  let num=0,dx=0,dy=0;
+  for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);dx+=(xs[i]-mx)**2;dy+=(ys[i]-my)**2}
+  return num/Math.sqrt(dx*dy);
+}
+function linReg(xs,ys){
+  const n=xs.length,mx=xs.reduce((a,b)=>a+b,0)/n,my=ys.reduce((a,b)=>a+b,0)/n;
+  let num=0,den=0;
+  for(let i=0;i<n;i++){num+=(xs[i]-mx)*(ys[i]-my);den+=(xs[i]-mx)**2}
+  const slope=num/den,intercept=my-slope*mx;
+  return{slope,intercept};
+}
+let corrChart=null,corrView=0;
+function renderCorr(view){
+  corrView=view;
+  const ctx=document.getElementById('corrC');
+  if(corrChart){corrChart.destroy()}
+  if(view===0){
+    const labels=dayNames,vals=labels.map((_,i)=>+dayAvg(i).toFixed(2));
+    const colors=vals.map((v,i)=>i===0?'#ff3b30':'#0071e3');
+    corrChart=new Chart(ctx,{type:'bar',data:{labels,datasets:[{data:vals,backgroundColor:colors,borderRadius:6}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{y:{title:{display:true,text:'Defect rate (%)',font:{size:11}},grid:{color:'rgba(128,128,128,0.07)'}},x:{grid:{display:false}}}}});
+    document.getElementById('corr-m1').textContent=dayAvg(0).toFixed(1)+'%';
+    document.getElementById('corr-m1-l').textContent='Monday avg defect';
+    document.getElementById('corr-m2').textContent=((dayAvg(1)+dayAvg(2)+dayAvg(3)+dayAvg(4))/4).toFixed(1)+'%';
+    document.getElementById('corr-m2-l').textContent='Other days avg';
+    document.getElementById('corr-m3').textContent='Operator?';
+    document.getElementById('corr-m3').style.color='var(--red)';
+    document.getElementById('corr-m3-l').textContent='Suspected cause';
+    document.getElementById('corr-insight').style.cssText='border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid #E24B4A;background:#FCEBEB;color:#791F1F;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px';
+    document.getElementById('corr-insight').innerHTML='<strong>Monday looks like the problem.</strong> Defect rate is noticeably higher every Monday than any other day. The obvious move: talk to the Monday crew.';
+    document.getElementById('corr-legend').innerHTML='<span><i style="background:#ff3b30"></i>Monday</span><span><i style="background:#0071e3"></i>Tue&#x2013;Fri</span>';
+  } else {
+    const xs=corrData.map(p=>p.t),ys=corrData.map(p=>p.y);
+    const r=pearson(xs,ys),{slope,intercept}=linReg(xs,ys);
+    const minX=Math.min(...xs)-2,maxX=Math.max(...xs)+2;
+    corrChart=new Chart(ctx,{type:'scatter',data:{datasets:[
+      {label:'Data',data:corrData.map(p=>({x:p.t,y:p.y})),backgroundColor:'#0071e3',pointRadius:5},
+      {label:'Trend',type:'line',data:[{x:minX,y:slope*minX+intercept},{x:maxX,y:slope*maxX+intercept}],borderColor:'#34c759',borderWidth:2,pointRadius:0,fill:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},plugins:{legend:{display:false},tooltip:{enabled:false}},
+      scales:{x:{title:{display:true,text:'Machine temperature at shift start (\u00B0F)',font:{size:11}},grid:{color:'rgba(128,128,128,0.07)'}},
+               y:{title:{display:true,text:'Defect rate (%)',font:{size:11}},grid:{color:'rgba(128,128,128,0.07)'}}}}});
+    document.getElementById('corr-m1').textContent=r.toFixed(2);
+    document.getElementById('corr-m1-l').textContent='Correlation (r)';
+    document.getElementById('corr-m2').textContent=(r*r*100).toFixed(0)+'%';
+    document.getElementById('corr-m2-l').textContent='Variance explained (R\u00B2)';
+    document.getElementById('corr-m3').textContent='Cold machine';
+    document.getElementById('corr-m3').style.color='var(--green)';
+    document.getElementById('corr-m3-l').textContent='Real driver';
+    document.getElementById('corr-insight').style.cssText='border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid #3B6D11;background:#EAF3DE;color:#27500A;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px';
+    document.getElementById('corr-insight').innerHTML='<strong>The &#x201C;Monday effect&#x201D; disappears.</strong> Same 25 data points, re-plotted by machine temperature at shift start instead of day of week. Defects track temperature, not the calendar &#x2014; Monday just happens to be cold because the machine sat idle all weekend.';
+    document.getElementById('corr-legend').innerHTML='<span><i style="background:#0071e3"></i>Actual measurement</span><span><i style="background:#34c759"></i>Trend line</span>';
+  }
+  document.getElementById('corr-btn0').style.cssText=view===0
+    ?'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid #E24B4A;background:#FCEBEB;cursor:pointer;font-size:12px;font-weight:500;color:#A32D2D;line-height:1.3;text-align:center'
+    :'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center';
+  document.getElementById('corr-btn1').style.cssText=view===1
+    ?'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid #3B6D11;background:#EAF3DE;cursor:pointer;font-size:12px;font-weight:500;color:#27500A;line-height:1.3;text-align:center'
+    :'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center';
+}
+function setCorrView(v){renderCorr(v)}
+renderCorr(0);
+</script>

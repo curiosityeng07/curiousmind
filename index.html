@@ -161,7 +161,7 @@ footer p{font-size:13px;color:var(--subtle)}
   </div>
   <div class="hnums">
     <div class="hnum"><div class="n">12</div><div class="l">Posts planned</div></div>
-    <div class="hnum"><div class="n">7</div><div class="l">Posts live</div></div>
+    <div class="hnum"><div class="n">9</div><div class="l">Posts live</div></div>
     <div class="hnum"><div class="n" style="color:var(--red);font-size:42px;font-weight:700">6</div><div class="l" style="color:var(--red);font-weight:700;font-size:15px;letter-spacing:-0.2px">Interactive tools ★</div></div>
   </div>
 </section>
@@ -199,7 +199,7 @@ footer p{font-size:13px;color:var(--subtle)}
       <div class="pc"><div class="pn">Post 06</div><h4>Cp &amp; Cpk</h4><p>The single most important number in process capability. Does your process fit the spec?</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
       <div class="pc"><div class="pn">Post 07</div><h4>Control Charts &amp; SPC</h4><p>How to know if a process change is real signal — or just noise.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
       <div class="pc"><div class="pn">Post 08</div><h4>Gage R&amp;R</h4><p>Are your measurements trustworthy? Most engineers never stop to check.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
-      <div class="pc" style="border-color:rgba(255,159,10,0.3)"><div class="pn">Post 09</div><h4>Correlation vs Causation</h4><p>The difference between a clue and a root cause.</p><div class="pill pa"><span class="pd"></span>Up next</div></div>
+      <div class="pc"><div class="pn">Post 09</div><h4>Correlation vs Causation</h4><p>The difference between a clue and a root cause.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
       <div class="pc"><div class="pn">Post 10</div><h4>DOE Basics</h4><p>Design of Experiments: the tool that separates junior engineers from senior ones.</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
       <div class="pc"><div class="pn">Post 11</div><h4>Sampling Strategies</h4><p>How many parts do you actually need to measure?</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
       <div class="pc" style="border-color:rgba(0,113,227,0.25);background:linear-gradient(145deg,var(--card),var(--blue-light))"><div class="pn">Post 12</div><h4>Putting It All Together</h4><p>A full process story — from raw data to confident engineering decisions.</p><div class="pill ps"><span class="pd"></span>The finale</div></div>
@@ -260,6 +260,20 @@ footer p{font-size:13px;color:var(--subtle)}
         </div>
         <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">ndc &#xB7; Verdict &#xB7; Tolerance</span></div>
       </div>
+      <div class="tt" id="corr-tile" onclick="openTool('corr')">
+        <div class="tth"><div class="tttag">Post 09</div><h3>Correlation Explorer</h3><p>A convincing trend line, until you reveal what's really driving it. Watch the story change without changing the data.</p></div>
+        <div style="padding:0 28px 20px">
+          <svg viewBox="0 0 280 70" width="100%">
+            <rect x="10" y="10" width="30" height="55" fill="#ff3b30" opacity="0.75" rx="3"/>
+            <rect x="60" y="30" width="30" height="35" fill="#0071e3" opacity="0.6" rx="3"/>
+            <rect x="110" y="35" width="30" height="30" fill="#0071e3" opacity="0.6" rx="3"/>
+            <rect x="160" y="35" width="30" height="30" fill="#0071e3" opacity="0.6" rx="3"/>
+            <rect x="210" y="32" width="30" height="33" fill="#0071e3" opacity="0.6" rx="3"/>
+            <text x="25" y="8" fill="#A32D2D" font-size="8" text-anchor="middle" font-family="sans-serif">Mon</text>
+          </svg>
+        </div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Reveal &#xB7; r &#xB7; R&#xB2;</span></div>
+      </div>
     </div>
 
     <div class="tpanel" id="bell-panel"></div>
@@ -273,6 +287,8 @@ footer p{font-size:13px;color:var(--subtle)}
     <div class="tpanel" id="spc-panel"></div>
 
     <div class="tpanel" id="grr-panel"></div>
+
+    <div class="tpanel" id="corr-panel"></div>
 
   </div>
 </section>
