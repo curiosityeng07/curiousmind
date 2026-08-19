@@ -200,7 +200,7 @@ footer p{font-size:13px;color:var(--subtle)}
       <div class="pc"><div class="pn">Post 07</div><h4>Control Charts &amp; SPC</h4><p>How to know if a process change is real signal — or just noise.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
       <div class="pc"><div class="pn">Post 08</div><h4>Gage R&amp;R</h4><p>Are your measurements trustworthy? Most engineers never stop to check.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
       <div class="pc"><div class="pn">Post 09</div><h4>Correlation vs Causation</h4><p>The difference between a clue and a root cause.</p><div class="pill pl"><span class="pd"></span>Live on LinkedIn</div></div>
-      <div class="pc"><div class="pn">Post 10</div><h4>DOE Basics</h4><p>Design of Experiments: the tool that separates junior engineers from senior ones.</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
+      <div class="pc"><div class="pn">Post 10</div><h4>Distribution Fitting</h4><p>Same data, different distribution assumption &#x2014; and a different Cpk.</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
       <div class="pc"><div class="pn">Post 11</div><h4>Sampling Strategies</h4><p>How many parts do you actually need to measure?</p><div class="pill ps"><span class="pd"></span>Coming soon</div></div>
       <div class="pc" style="border-color:rgba(0,113,227,0.25);background:linear-gradient(145deg,var(--card),var(--blue-light))"><div class="pn">Post 12</div><h4>Putting It All Together</h4><p>A full process story — from raw data to confident engineering decisions.</p><div class="pill ps"><span class="pd"></span>The finale</div></div>
     </div>
@@ -274,6 +274,16 @@ footer p{font-size:13px;color:var(--subtle)}
         </div>
         <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Reveal &#xB7; r &#xB7; R&#xB2;</span></div>
       </div>
+      <div class="tt" id="dist-tile" onclick="openTool('dist')">
+        <div class="tth"><div class="tttag">Post 10</div><h3>Distribution Fit Explorer</h3><p>Same 30 parts, same spec limit &#x2014; watch Cpk change depending which distribution you fit to the data.</p></div>
+        <div style="padding:0 28px 20px">
+          <svg viewBox="0 0 280 70" width="100%">
+            <path d="M10,62 C40,62 55,18 90,18 C125,18 130,58 160,60 C190,62 210,64 270,64" stroke="#378ADD" stroke-width="2.5" fill="none"/>
+            <path d="M10,55 C55,10 100,10 145,55 C190,10 235,10 270,55" stroke="#E24B4A" stroke-width="2" stroke-dasharray="5,4" fill="none" opacity="0.85"/>
+          </svg>
+        </div>
+        <div class="ttf"><button class="obtn">Open tool &#x2192;</button><span style="font-size:12px;color:var(--subtle)">Normal &#xB7; Weibull &#xB7; Lognormal</span></div>
+      </div>
     </div>
 
     <div class="tpanel" id="bell-panel"></div>
@@ -289,6 +299,8 @@ footer p{font-size:13px;color:var(--subtle)}
     <div class="tpanel" id="grr-panel"></div>
 
     <div class="tpanel" id="corr-panel"></div>
+
+    <div class="tpanel" id="dist-panel"></div>
 
   </div>
 </section>
