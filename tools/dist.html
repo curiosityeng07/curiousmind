@@ -1,0 +1,146 @@
+<div class="tph"><h3>Distribution Fit Explorer</h3><button class="xb" onclick="closeTool('dist',event)">&#x2715;</button></div>
+<div class="tpb">
+  <div style="display:flex;gap:8px;margin-bottom:16px" id="dist-btns"></div>
+  <div class="mr">
+    <div class="mt"><div class="mv" id="dist-m1">1.67</div><div class="ml">Naive Cpk (assumes normal)</div></div>
+    <div class="mt"><div class="mv" id="dist-m2">1.67</div><div class="ml" id="dist-m2-l">Correct Cpk (right distribution)</div></div>
+    <div class="mt"><div class="mv" id="dist-m3">0%</div><div class="ml">Capability overstated by</div></div>
+  </div>
+  <div id="dist-insight" style="border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-left:3px solid #378ADD;background:rgba(55,138,221,0.08);color:#1c4c73;padding:11px 15px;font-size:13px;line-height:1.6;margin-bottom:14px"></div>
+  <div class="cw"><canvas id="distC"></canvas></div>
+  <div class="lg" id="dist-legend" style="margin-top:10px"></div>
+</div>
+<script>
+const distUSL = 1.0;
+function invNorm(p){
+  let lo=-8,hi=8;
+  for(let i=0;i<60;i++){const mid=(lo+hi)/2; if(ncdf(mid,0,1)<p) lo=mid; else hi=mid}
+  return (lo+hi)/2;
+}
+function meanSd(data){
+  const n=data.length, m=data.reduce((a,b)=>a+b,0)/n;
+  const v=data.reduce((a,b)=>a+(b-m)**2,0)/(n-1);
+  return {mean:m, sd:Math.sqrt(v)};
+}
+function weibullPdf(x,k,l){if(x<=0)return 0;return (k/l)*Math.pow(x/l,k-1)*Math.exp(-Math.pow(x/l,k))}
+function weibullCdf(x,k,l){if(x<=0)return 0;return 1-Math.exp(-Math.pow(x/l,k))}
+function lognormPdf(x,mu,sig){if(x<=0)return 0;return (1/(x*sig*Math.sqrt(2*Math.PI)))*Math.exp(-((Math.log(x)-mu)**2)/(2*sig*sig))}
+function lognormCdf(x,mu,sig){if(x<=0)return 0;return ncdf(Math.log(x),mu,sig)}
+
+const distScenes = [
+  { id:'normal', label:'Normal', sub:'Baseline &#x2014; symmetric data', fitLabel:'Normal fit',
+    data:[0.603,0.53,0.462,0.545,0.642,0.308,0.594,0.402,0.338,0.571,0.477,0.59,0.483,0.697,0.45,0.491,0.621,0.355,0.451,0.447,0.588,0.454,0.527,0.459,0.431,0.539,0.665,0.421,0.473,0.348],
+    fitType:'normal' },
+  { id:'weibull', label:'Right-Skewed', sub:'e.g. flatness, roundness, torque-to-failure', fitLabel:'Weibull fit',
+    data:[0.167,0.097,0.31,0.06,0.254,0.183,0.052,0.242,0.039,0.211,0.058,0.069,0.207,0.426,0.085,0.127,0.298,0.59,0.273,0.196,0.684,0.045,0.456,0.153,0.094,0.082,0.161,0.417,0.109,0.275],
+    fitType:'weibull', shape:1.6, scale:0.30 },
+  { id:'lognorm', label:'Bounded', sub:'e.g. particle size, contamination counts', fitLabel:'Lognormal fit',
+    data:[0.229,0.135,0.366,0.309,0.203,0.198,0.144,0.122,0.405,0.107,0.2,0.169,0.189,0.167,0.19,0.231,0.276,0.11,0.235,0.302,0.288,0.296,0.129,0.094,0.154,0.24,0.214,0.098,0.168,0.334],
+    fitType:'lognormal', mu:-1.55, sigma:0.4 }
+];
+
+let distChart=null, distCur='normal';
+
+function computeCpu(scene){
+  const {mean,sd} = meanSd(scene.data);
+  const naive = (distUSL-mean)/(3*sd);
+  let F;
+  if(scene.fitType==='normal') F = ncdf(distUSL,mean,sd);
+  else if(scene.fitType==='weibull') F = weibullCdf(distUSL,scene.shape,scene.scale);
+  else F = lognormCdf(distUSL,scene.mu,scene.sigma);
+  const correct = invNorm(F)/3;
+  return {naive, correct, mean, sd};
+}
+
+function histogram(data, nbins, xmax){
+  const w = xmax/nbins;
+  const counts = new Array(nbins).fill(0);
+  data.forEach(x=>{let b=Math.floor(x/w); if(b>=nbins)b=nbins-1; if(b<0)b=0; counts[b]++});
+  return counts.map((c,i)=>({x0:i*w, x1:(i+1)*w, c}));
+}
+
+function renderDist(id){
+  distCur = id;
+  const scene = distScenes.find(s=>s.id===id);
+  const {naive, correct, mean, sd} = computeCpu(scene);
+  const xmax = Math.max(distUSL*1.05, Math.max(...scene.data)*1.15);
+  const nbins = 10;
+  const bins = histogram(scene.data, nbins, xmax);
+  const binW = xmax/nbins;
+  const n = scene.data.length;
+
+  const curveN = 80;
+  const naiveCurve=[], fitCurve=[];
+  for(let i=0;i<=curveN;i++){
+    const x = xmax*i/curveN;
+    naiveCurve.push({x, y: npdf(x,mean,sd)*n*binW});
+    let fy;
+    if(scene.fitType==='normal') fy = npdf(x,mean,sd)*n*binW;
+    else if(scene.fitType==='weibull') fy = weibullPdf(x,scene.shape,scene.scale)*n*binW;
+    else fy = lognormPdf(x,scene.mu,scene.sigma)*n*binW;
+    fitCurve.push({x, y: fy});
+  }
+
+  const ctx = document.getElementById('distC');
+  if(distChart){distChart.destroy()}
+  distChart = new Chart(ctx,{
+    data:{
+      datasets:[
+        { type:'bar', label:'Data', data:bins.map(b=>({x:(b.x0+b.x1)/2, y:b.c})), backgroundColor:'rgba(120,120,120,0.28)', barPercentage:1.0, categoryPercentage:1.0, order:3 },
+        { type:'line', label:'Assumed normal', data:naiveCurve, borderColor:'#E24B4A', borderWidth:2, borderDash:[5,4], pointRadius:0, fill:false, tension:0.3, order:1 },
+        { type:'line', label:scene.fitLabel, data:fitCurve, borderColor:'#378ADD', borderWidth:2.5, pointRadius:0, fill:false, tension:0.3, order:2 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, animation:{duration:400},
+      plugins:{ legend:{display:false}, tooltip:{enabled:false},
+        annotation:undefined },
+      scales:{
+        x:{ type:'linear', min:0, max:xmax, title:{display:true,text:'Measurement',font:{size:11}}, grid:{color:'rgba(128,128,128,0.07)'} },
+        y:{ title:{display:true,text:'Count',font:{size:11}}, grid:{color:'rgba(128,128,128,0.07)'} }
+      }
+    }
+  });
+
+  document.getElementById('dist-m1').textContent = naive.toFixed(2);
+  document.getElementById('dist-m2').textContent = correct.toFixed(2);
+  document.getElementById('dist-m2-l').textContent = 'Correct Cpk ('+scene.fitLabel+')';
+  const gap = ((naive-correct)/correct*100);
+  document.getElementById('dist-m3').textContent = (gap>=0?'+':'')+gap.toFixed(0)+'%';
+  document.getElementById('dist-m3').style.color = Math.abs(gap)>15 ? 'var(--red)' : 'var(--green)';
+
+  const insight = document.getElementById('dist-insight');
+  if(scene.fitType==='normal'){
+    insight.style.borderLeftColor = '#3B6D11';
+    insight.style.background = '#EAF3DE';
+    insight.style.color = '#27500A';
+    insight.innerHTML = '<strong>This one actually is normal.</strong> The naive formula and the correctly-fit distribution land on nearly the same Cpk &#x2014; because the assumption behind Cpk happens to hold here. This is the case Cpk was built for.';
+  } else {
+    insight.style.borderLeftColor = '#E24B4A';
+    insight.style.background = '#FCEBEB';
+    insight.style.color = '#791F1F';
+    insight.innerHTML = '<strong>Same 30 parts, same spec limit &#x2014; different verdict.</strong> Forcing a normal curve onto this data (red dashed line) overstates capability by '+Math.abs(gap).toFixed(0)+'%. The '+scene.fitLabel.toLowerCase()+' (blue line) is what the data actually does.';
+  }
+
+  document.getElementById('dist-legend').innerHTML =
+    '<span><i style="background:rgba(120,120,120,0.5)"></i>Measured data</span>'+
+    '<span><i style="background:#E24B4A"></i>Assumed normal</span>'+
+    '<span><i style="background:#378ADD"></i>'+scene.fitLabel+'</span>';
+
+  document.getElementById('dist-btns').querySelectorAll('button').forEach(b=>{
+    const active = b.dataset.id===id;
+    b.style.cssText = active
+      ? 'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid #378ADD;background:rgba(55,138,221,0.1);cursor:pointer;font-size:12px;font-weight:500;color:#1c4c73;line-height:1.3;text-align:center'
+      : 'flex:1;padding:10px 8px;border-radius:var(--radius-sm);border:1.5px solid var(--border);background:var(--bg);cursor:pointer;font-size:12px;font-weight:500;color:var(--muted);line-height:1.3;text-align:center';
+  });
+}
+
+function initDist(){
+  const btnRow = document.getElementById('dist-btns');
+  btnRow.innerHTML = distScenes.map(s=>
+    '<button data-id="'+s.id+'" onclick="renderDist(\''+s.id+'\')">'+s.label+'<br><span style="font-weight:400">'+s.sub+'</span></button>'
+  ).join('');
+  renderDist('normal');
+}
+initDist();
+</script>
